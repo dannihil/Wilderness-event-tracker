@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 const EVENTS_URL =
-  "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/main/events.json";
+  "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/refs/heads/main/events.json";
 
 export default function HomeScreen() {
   const [schedule, setSchedule] = useState(null);
@@ -14,7 +14,9 @@ export default function HomeScreen() {
     const fetchSchedule = async () => {
       try {
         const res = await fetch(EVENTS_URL);
-        const data = await res.json();
+        const text = await res.text();
+        console.log("Raw fetched data:", text);
+        const data = JSON.parse(text);
         setSchedule(data);
         const now = new Date();
 
