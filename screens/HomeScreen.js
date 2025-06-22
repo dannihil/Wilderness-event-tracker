@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 const EVENTS_URL =
-  "https://raw.githubusercontent.com/your-username/your-repo/main/events.json";
+  "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/main/events.json";
 
 export default function HomeScreen() {
   const [schedule, setSchedule] = useState(null);
