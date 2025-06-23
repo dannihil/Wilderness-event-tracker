@@ -19,11 +19,18 @@ async function scrape() {
       if (cols.length >= 2) {
         const date = $(cols[0]).text().trim();
         const name = $(cols[1]).text().trim();
-        schedule.push({ date, event: name });
+
+        // Filtering logic
+        const isTimeFormat = /^\d{2}:\d{2}$/.test(name); // name should be a time
+        const isEventName = /^[A-Za-z].+/.test(date) && !/^\d+$/.test(date); // date should be a string, not a number
+
+        if (isTimeFormat && isEventName) {
+          schedule.push({ date, event: name });
+        }
       }
     });
 
-    console.log(`Found ${schedule.length} events`);
+    console.log(`Filtered down to ${schedule.length} valid events`);
 
     const filePath = path.join(process.cwd(), "events.json");
     fs.writeFileSync(filePath, JSON.stringify(schedule, null, 2));
