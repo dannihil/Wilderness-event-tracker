@@ -37,11 +37,6 @@ jobs:
       - name: Check events.json content
         run: cat events.json
 
-      - name: Sync local branch with remote
-        run: |
-          git fetch origin main
-          git reset --hard origin/main
-
       - name: Commit and push changes
         run: |
           git config user.name "autobot"
