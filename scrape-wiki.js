@@ -25,7 +25,7 @@ async function scrape() {
 
     console.log(`Found ${schedule.length} events`);
 
-    const filePath = path.join(__dirname, "events.json");
+    const filePath = path.join(process.cwd(), "events.json");
     fs.writeFileSync(filePath, JSON.stringify(schedule, null, 2));
     console.log(`✅ Wrote ${schedule.length} events to ${filePath}`);
   } catch (err) {
