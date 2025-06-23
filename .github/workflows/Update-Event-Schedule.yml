@@ -2,7 +2,7 @@ name: Update Event Schedule
 
 on:
   schedule:
-    - cron: "0 0 * * 1" # Every Monday at 00:00 UTC
+    - cron: "0 * * * *" # Runs at the top of every hour
   workflow_dispatch: # Manual trigger option
 
 permissions:
