@@ -34,6 +34,9 @@ jobs:
       - name: Show scraper log
         run: cat scraper.log
 
+      - name: Check events.json content
+        run: cat events.json
+
       - name: Sync local branch with remote
         run: |
           git fetch origin main
