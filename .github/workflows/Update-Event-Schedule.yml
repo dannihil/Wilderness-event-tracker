@@ -1,12 +1,12 @@
 name: Update Event Schedule
 
-permissions:
-  contents: write
-
 on:
   schedule:
     - cron: "0 0 * * 1" # Every Monday at 00:00 UTC
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger option
+
+permissions:
+  contents: write # allow workflow to push changes
 
 jobs:
   update:
@@ -18,9 +18,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Confirm scrape-wiki.js exists
-        run: ls -l scrape-wiki.js
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -35,19 +32,22 @@ jobs:
           echo "Starting scraper..."
           node scrape-wiki.js > scraper.log 2>&1 || (echo "Scraper failed"; cat scraper.log; exit 1)
 
+      - name: Sync local branch with remote
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "autobot"
+          git config user.email "autobot@example.com"
+          git add events.json
+          git commit -m "Update schedule" || echo "No changes to commit"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/dannihil/Wilderness-event-tracker.git
+          git push origin main
+
       - name: List files to confirm output
         run: ls -lah
 
       - name: Check events.json content
         run: cat events.json || echo "events.json not found"
-
-      - name: Configure Git
-        run: |
-          git config user.name "autobot"
-          git config user.email "autobot@example.com"
-
-      - name: Commit and push changes
-        run: |
-          git add events.json
-          git commit -m "Update schedule" || echo "No changes to commit"
-          git push
