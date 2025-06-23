@@ -29,8 +29,10 @@ jobs:
 
       - name: Run scraper with logging
         run: |
-          echo "Starting scraper..."
           node scrape-wiki.js > scraper.log 2>&1 || (echo "Scraper failed"; cat scraper.log; exit 1)
+
+      - name: Show scraper log
+        run: cat scraper.log
 
       - name: Sync local branch with remote
         run: |
