@@ -10,17 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'  # or your preferred Node version
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install axios cheerio
 
-      - name: Run scraper
-        run: node scrape-wiki.js
+      - name: Run scraper with logging
+        run: |
+          echo "Starting scraper..."
+          node scrape-wiki.js > scraper.log 2>&1 || (echo "Scraper failed"; cat scraper.log; exit 1)
+
+      - name: List files to confirm output
+        run: ls -lah
+
+      - name: Check events.json content
+        run: cat events.json || echo "events.json not found"
 
       - name: Configure Git
         run: |
