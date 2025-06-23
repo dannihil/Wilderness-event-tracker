@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 const EVENTS_URL =
-  "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/refs/heads/main/events.json";
+  "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/main/events.json";
 
 export default function HomeScreen() {
-  const [schedule, setSchedule] = useState(null);
+  const [schedule, setSchedule] = useState([]);
   const [currentEvent, setCurrentEvent] = useState(null);
   const [nextEvents, setNextEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,21 +14,31 @@ export default function HomeScreen() {
     const fetchSchedule = async () => {
       try {
         const res = await fetch(EVENTS_URL);
-        const text = await res.text();
-        console.log("Raw fetched data:", text);
-        const data = JSON.parse(text);
-        setSchedule(data);
+        const data = await res.json();
         const now = new Date();
+        const today = now.toISOString().split("T")[0]; // YYYY-MM-DD
 
-        // Find current and next events
-        const current = data.find((e, i) => {
-          const start = new Date(e.start);
-          const next = data[i + 1] && new Date(data[i + 1].start);
-          return now >= start && (!next || now < next);
+        // Map event times into Date objects
+        const parsedEvents = data.map((e) => {
+          const [hour, minute = "00"] = e.event.split(":");
+          const start = new Date(today);
+          start.setHours(parseInt(hour), parseInt(minute), 0, 0);
+          if (start < now) start.setDate(start.getDate() + 1); // move to next day if already passed
+          return { ...e, start };
         });
 
-        const future = data.filter((e) => new Date(e.start) > now).slice(0, 5);
+        // Sort by start time
+        parsedEvents.sort((a, b) => a.start - b.start);
 
+        const current =
+          parsedEvents.find((e, i) => {
+            const next = parsedEvents[i + 1];
+            return now >= e.start && (!next || now < next.start);
+          }) || parsedEvents[0];
+
+        const future = parsedEvents.filter((e) => e.start > now).slice(0, 5);
+
+        setSchedule(parsedEvents);
         setCurrentEvent(current);
         setNextEvents(future);
       } catch (err) {
@@ -52,11 +62,11 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>🌋 Current Wilderness Flash Event</Text>
-      <Text style={styles.eventName}>{currentEvent.event}</Text>
+      <Text style={styles.eventName}>{currentEvent.date}</Text>
       <Text style={styles.timer}>Next 5 Events:</Text>
       {nextEvents.map((e, i) => (
         <Text key={i} style={styles.upcoming}>
-          🕒 {new Date(e.start).toLocaleString()}: {e.event}
+          🕒 {e.start.toLocaleString()}: {e.date}
         </Text>
       ))}
     </View>
