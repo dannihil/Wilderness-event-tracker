@@ -40,7 +40,7 @@ export default function HomeScreen() {
         // Map events adding the precise next Date for each event time
         const scheduledEvents = data.map((event) => ({
           ...event,
-          start: getNextOccurrence(event.event), // event.event is time string like "11:00"
+          start: getNextOccurrence(event.date), // event.date is time string like "11:00"
         }));
 
         // Sort by start date ascending
@@ -102,11 +102,19 @@ export default function HomeScreen() {
       const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-      setCountdown(
-        `${diffHrs.toString().padStart(2, "0")}:${diffMins
-          .toString()
-          .padStart(2, "0")}:${diffSecs.toString().padStart(2, "0")}`
-      );
+      if (diffHrs >= 1) {
+        setCountdown(
+          `${diffHrs}:${diffMins.toString().padStart(2, "0")}:${diffSecs
+            .toString()
+            .padStart(2, "0")}`
+        );
+      } else {
+        setCountdown(
+          `${diffMins.toString().padStart(2, "0")}:${diffSecs
+            .toString()
+            .padStart(2, "0")}`
+        );
+      }
     }, 1000);
 
     return () => clearInterval(interval);
@@ -123,7 +131,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>🌋 Current Wilderness Flash Event</Text>
-      <Text style={styles.eventName}>{currentEvent.date}</Text>
+      <Text style={styles.eventName}>{currentEvent.event}</Text>
       <Text style={styles.timer}>
         Starts at: {currentEvent.start.toLocaleTimeString()} (Countdown:{" "}
         {countdown})
@@ -132,7 +140,7 @@ export default function HomeScreen() {
       <Text style={styles.timer}>Next 5 Events:</Text>
       {nextEvents.map((e, i) => (
         <Text key={i} style={styles.upcoming}>
-          🕒 {e.start.toLocaleTimeString()}: {e.date}
+          🕒 {e.start.toLocaleTimeString()}: {e.event}
         </Text>
       ))}
     </View>

@@ -2,8 +2,8 @@ name: Update Event Schedule
 
 on:
   schedule:
-    - cron: "0 * * * *" # Runs at the top of every hour
-  workflow_dispatch: # Manual trigger option
+    - cron: "0 * * * *" # Runs at minute 0 of every hour (top of every hour)
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
 
 permissions:
   contents: write # allow workflow to push changes
