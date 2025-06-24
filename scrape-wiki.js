@@ -17,15 +17,15 @@ async function scrape() {
     $("table.wikitable tbody tr").each((i, el) => {
       const cols = $(el).find("td");
       if (cols.length >= 2) {
-        const date = $(cols[0]).text().trim();
-        const name = $(cols[1]).text().trim();
+        const name = $(cols[0]).text().trim();
+        const date = $(cols[1]).text().trim();
 
         // Filtering logic
-        const isTimeFormat = /^\d{2}:\d{2}$/.test(name); // name should be a time
-        const isEventName = /^[A-Za-z].+/.test(date) && !/^\d+$/.test(date); // date should be a string, not a number
+        const isTimeFormat = /^\d{2}:\d{2}$/.test(date); // date should be a time
+        const isEventName = /^[A-Za-z].+/.test(name) && !/^\d+$/.test(name); // name should be a string, not a number
 
         if (isTimeFormat && isEventName) {
-          schedule.push({ date, event: name });
+          schedule.push({ event: name, date });
         }
       }
     });
