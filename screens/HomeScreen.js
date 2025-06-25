@@ -2,6 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -263,67 +265,89 @@ export default function HomeScreen() {
     : filteredNextEvents.slice(0, 3);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Current Wilderness Flash Event</Text>
-
-      <Text style={styles.eventName}>
-        {(countdownEvent?.event || currentEvent?.event)
-          ?.replace(/special/gi, "")
-          .trim()}
-      </Text>
-
-      <Text style={styles.timer}>
-        Starts at: {countdownEvent.start.toLocaleTimeString()} (Countdown:{" "}
-        {countdown})
-      </Text>
-
-      <TouchableOpacity
-        onPress={() => setFilterSpecial(!filterSpecial)}
-        style={[
-          styles.button,
-          { backgroundColor: filterSpecial ? "#444" : "#007AFF" },
-        ]}
-      >
-        <Text style={styles.buttonText}>
-          {filterSpecial ? "Show All Events" : "Show Only Special Events"}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <Text style={[styles.header, { marginBottom: 50 }]}>
+          Wilderness Event Tracker
         </Text>
-      </TouchableOpacity>
 
-      <Text style={styles.header}>Upcoming Events</Text>
-
-      {eventsToShow.map((event) => (
-        <View
-          key={`${event.event}-${event.start.getTime()}`}
-          style={styles.eventRow}
+        <Text
+          style={[
+            styles.eventName,
+            isSpecialEvent(countdownEvent || currentEvent) && {
+              color: "#E87038",
+            },
+            { fontSize: 35 },
+          ]}
         >
-          <Text style={styles.eventTime}>
-            {event.start.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
-          <Text
-            style={[
-              styles.eventName,
-              isSpecialEvent(event) && { color: "#E87038" },
-            ]}
-          >
-            {event.event.replace(/special/gi, "").trim()}
-          </Text>
-        </View>
-      ))}
+          {(countdownEvent?.event || currentEvent?.event)
+            ?.replace(/special/gi, "")
+            .trim()}
+        </Text>
 
-      {filteredNextEvents.length > 3 && (
+        <Text style={styles.timer}>{countdown}</Text>
+
         <TouchableOpacity
-          onPress={() => setShowAllEvents(!showAllEvents)}
-          style={[styles.button, { marginTop: 10 }]}
+          onPress={() => setFilterSpecial(!filterSpecial)}
+          style={[
+            styles.button,
+            {
+              backgroundColor: filterSpecial ? "#444" : "#007AFF",
+              marginBottom: 50,
+            },
+          ]}
         >
           <Text style={styles.buttonText}>
-            {showAllEvents ? "Show Less" : "Show More"}
+            {filterSpecial ? "Show All Events" : "Show Only Special Events"}
           </Text>
         </TouchableOpacity>
-      )}
-    </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 20,
+          }}
+        >
+          <Text style={styles.header}>Upcoming Events</Text>
+          {filteredNextEvents.length > 3 && (
+            <TouchableOpacity
+              onPress={() => setShowAllEvents(!showAllEvents)}
+              style={[styles.button, { marginTop: 10 }]}
+            >
+              <Text style={styles.buttonText}>
+                {showAllEvents ? "Show Less" : "Show More"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <ScrollView>
+          {eventsToShow.map((event) => (
+            <View
+              key={`${event.event}-${event.start.getTime()}`}
+              style={styles.eventRow}
+            >
+              <Text style={styles.eventTime}>
+                {event.start.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+              <Text
+                style={[
+                  styles.eventName,
+                  isSpecialEvent(event) && { color: "#E87038" },
+                  { fontSize: 20 },
+                ]}
+              >
+                {event.event.replace(/special/gi, "").trim()}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -331,21 +355,20 @@ const styles = StyleSheet.create({
   loader: { flex: 1, justifyContent: "center" },
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#111",
     padding: 20,
   },
   header: {
-    fontSize: 18,
+    fontSize: 30,
     marginBottom: 10,
     fontWeight: "bold",
-    color: "#999",
+    color: "#fff",
   },
   eventName: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#b8b8b8",
   },
   eventTime: {
     fontSize: 16,
@@ -355,13 +378,14 @@ const styles = StyleSheet.create({
   eventRow: {
     flexDirection: "row",
     justifyContent: "flex-start",
+    alignItems: "center",
     width: "100%",
     marginBottom: 8,
   },
   timer: {
-    fontSize: 18,
+    fontSize: 50,
     fontWeight: "bold",
-    color: "#aaa",
+    color: "white",
     marginBottom: 12,
   },
   button: {

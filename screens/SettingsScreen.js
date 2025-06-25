@@ -1,6 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const PREF_KEY = "notifyMinutesBefore";
 const NOTIFY_TYPE_KEY = "notifyPreference";
@@ -48,36 +55,43 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Notify how many minutes before event?</Text>
-      <View style={styles.row}>
-        {notifyMinuteOptions.map((m) => (
-          <TouchableOpacity
-            key={m}
-            onPress={() => saveMinutes(m)}
-            style={[
-              styles.button,
-              notifyMinutesBefore === m && styles.selected,
-            ]}
-          >
-            <Text style={styles.text}>{m} min</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+    <SafeAreaView style={styles.container}>
+      <View style={{ padding: 20 }}>
+        <Text style={styles.header}>Notify how many minutes before event?</Text>
+        <View style={styles.row}>
+          {notifyMinuteOptions.map((m) => (
+            <TouchableOpacity
+              key={m}
+              onPress={() => saveMinutes(m)}
+              style={[
+                styles.button,
+                notifyMinutesBefore === m && styles.selected,
+              ]}
+            >
+              <Text style={styles.text}>{m} min</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <Text style={[styles.header, { marginTop: 20 }]}>Notification type</Text>
-      <View style={styles.row}>
-        {notifyTypes.map(({ key, label }) => (
-          <TouchableOpacity
-            key={key}
-            onPress={() => savePreference(key)}
-            style={[styles.button, notifyPreference === key && styles.selected]}
-          >
-            <Text style={styles.text}>{label}</Text>
-          </TouchableOpacity>
-        ))}
+        <Text style={[styles.header, { marginTop: 20 }]}>
+          Notification type
+        </Text>
+        <View style={styles.row}>
+          {notifyTypes.map(({ key, label }) => (
+            <TouchableOpacity
+              key={key}
+              onPress={() => savePreference(key)}
+              style={[
+                styles.button,
+                notifyPreference === key && styles.selected,
+              ]}
+            >
+              <Text style={styles.text}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
