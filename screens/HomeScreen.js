@@ -19,6 +19,9 @@ const EVENTS_URL =
 const PREF_KEY = "notifyMinutesBefore";
 const NOTIFY_TYPE_KEY = "notifyPreference";
 
+const DEFAULT_EVENTS_TO_SHOW = 5;
+const MAX_EVENTS_TO_SHOW = 11;
+
 export default function HomeScreen() {
   const [schedule, setSchedule] = useState([]);
   const [currentEvent, setCurrentEvent] = useState(null);
@@ -261,8 +264,8 @@ export default function HomeScreen() {
     : nextEvents;
 
   const eventsToShow = showAllEvents
-    ? filteredNextEvents
-    : filteredNextEvents.slice(0, 3);
+    ? filteredNextEvents.slice(0, MAX_EVENTS_TO_SHOW)
+    : filteredNextEvents.slice(0, DEFAULT_EVENTS_TO_SHOW);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -311,7 +314,7 @@ export default function HomeScreen() {
           }}
         >
           <Text style={styles.header}>Upcoming Events</Text>
-          {filteredNextEvents.length > 3 && (
+          {filteredNextEvents.length > 5 && (
             <TouchableOpacity
               onPress={() => setShowAllEvents(!showAllEvents)}
               style={[styles.button, { marginTop: 10 }]}
