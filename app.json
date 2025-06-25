@@ -9,14 +9,21 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dannihil.wildernesseventtracker",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationUsageDescription": "We use notifications to alert you before Wilderness events."
+      }
     },
     "android": {
+      "package": "com.dannihil.wildernesseventtracker",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": ["VIBRATE", "RECEIVE_BOOT_COMPLETED"]
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +45,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6fcf0f63-1036-4f3c-b49f-5f8f7ad15d2a"
+      }
     }
   }
 }

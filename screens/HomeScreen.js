@@ -1,20 +1,21 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  cancelAllNotifications,
+  scheduleNotification,
+} from "../utils/notifications"; // adjust path
 
 const EVENTS_URL =
   "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/main/events.json";
-
-const NOTIFY_PREF_KEY = "notifyPreference";
-const NOTIFY_MINUTES_KEY = "notifyMinutesBefore";
+const PREF_KEY = "notifyMinutesBefore";
+const NOTIFY_TYPE_KEY = "notifyPreference";
 
 export default function HomeScreen() {
   const [schedule, setSchedule] = useState([]);
@@ -23,11 +24,11 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [countdown, setCountdown] = useState("");
   const [showAllEvents, setShowAllEvents] = useState(false);
-  const [filterSpecial, setFilterSpecial] = useState(false);
-  const [notifyPreference, setNotifyPreference] = useState("none"); // "all" | "special" | "none"
-  const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 minutes
+  const [filterSpecial, setFilterSpecial] = useState(false); // UI filter toggle
+  const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
+  const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
 
-  // Convert "HH:mm" time string into next Date occurrence (today or tomorrow)
+  // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
     const [hour, minute] = timeStr.split(":").map(Number);
     const now = new Date();
@@ -51,12 +52,19 @@ export default function HomeScreen() {
     return event.event.toLowerCase().includes("special");
   }
 
-  // Load schedule and set state
+  // Fetch schedule from remote JSON
   useEffect(() => {
-    const fetchSchedule = async () => {
+    async function fetchSchedule() {
       try {
         const res = await fetch(EVENTS_URL);
         const data = await res.json();
+
+        if (!data || data.length === 0) {
+          setSchedule([]);
+          setCurrentEvent(null);
+          setNextEvents([]);
+          return;
+        }
 
         const scheduledEvents = data.map((event) => ({
           ...event,
@@ -69,7 +77,6 @@ export default function HomeScreen() {
 
         const now = new Date();
 
-        // Find current event as before
         let current = null;
         for (let i = 0; i < scheduledEvents.length; i++) {
           const start = scheduledEvents[i].start;
@@ -85,83 +92,97 @@ export default function HomeScreen() {
         if (!current) current = scheduledEvents[0];
 
         const currentIndex = scheduledEvents.indexOf(current);
-        const future = scheduledEvents.slice(
-          currentIndex + 1,
-          scheduledEvents.length
-        );
+        const future = scheduledEvents.slice(currentIndex + 1);
 
         setCurrentEvent(current);
         setNextEvents(future);
       } catch (err) {
         console.error("Failed to fetch event schedule:", err);
+        setSchedule([]);
+        setCurrentEvent(null);
+        setNextEvents([]);
       } finally {
         setLoading(false);
       }
-    };
-
+    }
     fetchSchedule();
   }, []);
 
-  // Load notify preferences on mount
+  // Load user notification preferences on mount
   useEffect(() => {
-    const loadNotifyPrefs = async () => {
+    async function loadPrefs() {
       try {
-        const pref = await AsyncStorage.getItem(NOTIFY_PREF_KEY);
-        if (pref === "all" || pref === "special" || pref === "none") {
-          setNotifyPreference(pref);
-        }
-        const minutesStr = await AsyncStorage.getItem(NOTIFY_MINUTES_KEY);
-        const minutes = parseInt(minutesStr, 10);
-        if (!isNaN(minutes) && minutes > 0) {
-          setNotifyMinutesBefore(minutes);
-        }
+        const minutesStr = await AsyncStorage.getItem(PREF_KEY);
+        if (minutesStr) setNotifyMinutesBefore(parseInt(minutesStr, 10));
+        const pref = await AsyncStorage.getItem(NOTIFY_TYPE_KEY);
+        if (pref) setNotifyPreference(pref);
       } catch (err) {
-        console.error("Failed to load notify preferences", err);
+        console.error("Failed to load notification preferences", err);
       }
-    };
-    loadNotifyPrefs();
+    }
+    loadPrefs();
   }, []);
 
-  // When notifyPreference, notifyMinutesBefore, or schedule changes, schedule notifications accordingly
+  // Choose events to notify for, filtered by notification preference
+  const eventsToNotify = useMemo(() => {
+    if (notifyPreference === "all") return schedule;
+    if (notifyPreference === "special") return schedule.filter(isSpecialEvent);
+    return [];
+  }, [schedule, notifyPreference]);
+
+  // Schedule notifications whenever relevant dependencies change
   useEffect(() => {
-    if (notifyPreference === "none" || schedule.length === 0) {
-      // Cancel all notifications if any
-      Notifications.cancelAllScheduledNotificationsAsync();
-      return;
+    let isCancelled = false;
+
+    async function scheduleNotifications() {
+      try {
+        console.log("Cancelling all notifications...");
+        await cancelAllNotifications();
+
+        if (isCancelled) return;
+
+        if (!eventsToNotify.length) {
+          console.log("No events to notify.");
+          return;
+        }
+
+        const now = new Date();
+        console.log(
+          `Scheduling notifications for ${eventsToNotify.length} events, notifyMinutesBefore=${notifyMinutesBefore}`
+        );
+
+        for (const event of eventsToNotify) {
+          const notifyTime = new Date(
+            event.start.getTime() - notifyMinutesBefore * 60 * 1000
+          );
+
+          if (notifyTime > now) {
+            const title = isSpecialEvent(event)
+              ? "Special Wilderness Event Reminder!"
+              : "Wilderness Event";
+
+            await scheduleNotification(
+              title,
+              `${event.event
+                .replace(/special/gi, "")
+                .trim()} starts in ${notifyMinutesBefore} minutes!`,
+              notifyTime
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Error scheduling notifications:", err);
+      }
     }
 
-    // Cancel previous scheduled notifications to avoid duplicates
-    Notifications.cancelAllScheduledNotificationsAsync();
+    scheduleNotifications();
 
-    // Filter events to notify about
-    const now = new Date();
-    const notifyEvents =
-      notifyPreference === "all" ? schedule : schedule.filter(isSpecialEvent);
+    return () => {
+      isCancelled = true;
+    };
+  }, [eventsToNotify, notifyMinutesBefore]);
 
-    // Schedule notifications X minutes before event start (if in future)
-    notifyEvents.forEach((event) => {
-      const notifyTime = new Date(
-        event.start.getTime() - notifyMinutesBefore * 60 * 1000
-      );
-      if (notifyTime > now) {
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: isSpecialEvent(event)
-              ? "Upcoming Special Wilderness Event!"
-              : "Upcoming Wilderness Event",
-            body: `${event.event
-              .replace(/special/gi, "")
-              .trim()} starts in ${notifyMinutesBefore} minutes!`,
-            sound: true,
-            priority: Notifications.AndroidNotificationPriority.HIGH,
-          },
-          trigger: { type: "date", date: notifyTime },
-        });
-      }
-    });
-  }, [notifyPreference, notifyMinutesBefore, schedule]);
-
-  // Decide which event to count down to based on filterSpecial
+  // Countdown event selection logic
   const countdownEvent = (() => {
     if (filterSpecial) {
       const now = new Date();
@@ -171,9 +192,11 @@ export default function HomeScreen() {
     }
   })();
 
-  // Countdown timer effect
+  // Countdown timer update
   useEffect(() => {
     if (!countdownEvent) return;
+
+    let hasNotified = false;
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -181,12 +204,13 @@ export default function HomeScreen() {
 
       if (diffMs <= 0) {
         setCountdown("Event is live now!");
+        clearInterval(interval);
         return;
       }
 
-      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const diffMins = Math.floor(diffMs / (1000 * 60));
       const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
 
       if (diffHrs >= 1) {
         setCountdown(
@@ -201,10 +225,20 @@ export default function HomeScreen() {
             .padStart(2, "0")}`
         );
       }
+
+      if (diffMins === notifyMinutesBefore && !hasNotified) {
+        hasNotified = true;
+
+        scheduleNotification(
+          "Wilderness Event",
+          `${countdownEvent.event} starts in ${notifyMinutesBefore} minutes!`,
+          new Date()
+        );
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [countdownEvent]);
+  }, [countdownEvent, notifyMinutesBefore]);
 
   if (loading) {
     return <ActivityIndicator style={styles.loader} size="large" />;
@@ -220,7 +254,6 @@ export default function HomeScreen() {
     );
   }
 
-  // Events to show based on filter and toggle
   const filteredNextEvents = filterSpecial
     ? nextEvents.filter(isSpecialEvent)
     : nextEvents;
@@ -229,47 +262,14 @@ export default function HomeScreen() {
     ? filteredNextEvents
     : filteredNextEvents.slice(0, 3);
 
-  // Save notify preference helper
-  const saveNotifyPreference = async (pref) => {
-    try {
-      await AsyncStorage.setItem(NOTIFY_PREF_KEY, pref);
-      setNotifyPreference(pref);
-      Alert.alert(
-        "Notification Preference Saved",
-        `You will be notified for: ${pref}`
-      );
-    } catch (err) {
-      console.error("Failed to save notify preference", err);
-      Alert.alert("Error", "Failed to save your preference.");
-    }
-  };
-
-  // Save notify minutes helper
-  const saveNotifyMinutesBefore = async (minutes) => {
-    try {
-      await AsyncStorage.setItem(NOTIFY_MINUTES_KEY, minutes.toString());
-      setNotifyMinutesBefore(minutes);
-      Alert.alert(
-        "Notification Time Saved",
-        `Notifications will be sent ${minutes} minutes before events.`
-      );
-    } catch (err) {
-      console.error("Failed to save notify minutes", err);
-      Alert.alert("Error", "Failed to save notification time.");
-    }
-  };
-
-  // UI for selecting notify minutes
-  const notifyMinutesOptions = [5, 10, 15, 30, 60];
-
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>🌋 Current Wilderness Flash Event</Text>
+      <Text style={styles.header}>Current Wilderness Flash Event</Text>
 
       <Text style={styles.eventName}>
-        {filterSpecial && countdownEvent
-          ? countdownEvent.event.replace(/special/gi, "").trim()
-          : currentEvent?.event}
+        {(countdownEvent?.event || currentEvent?.event)
+          ?.replace(/special/gi, "")
+          .trim()}
       </Text>
 
       <Text style={styles.timer}>
@@ -289,72 +289,13 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
-      <Text style={[styles.timer, { marginTop: 20 }]}>
-        Notification Options:
-      </Text>
-
-      <TouchableOpacity
-        onPress={() => saveNotifyPreference("all")}
-        style={[
-          styles.button,
-          notifyPreference === "all" && styles.buttonSelected,
-        ]}
-      >
-        <Text style={styles.buttonText}>Notify All Events</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => saveNotifyPreference("special")}
-        style={[
-          styles.button,
-          notifyPreference === "special" && styles.buttonSelected,
-        ]}
-      >
-        <Text style={styles.buttonText}>Notify Special Events Only</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => saveNotifyPreference("none")}
-        style={[
-          styles.button,
-          notifyPreference === "none" && styles.buttonSelected,
-        ]}
-      >
-        <Text style={styles.buttonText}>Disable Notifications</Text>
-      </TouchableOpacity>
-
-      {notifyPreference !== "none" && (
-        <>
-          <Text style={[styles.timer, { marginTop: 20 }]}>
-            Notify me minutes before event:
-          </Text>
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}
-          >
-            {notifyMinutesOptions.map((m) => (
-              <TouchableOpacity
-                key={m}
-                onPress={() => saveNotifyMinutesBefore(m)}
-                style={[
-                  styles.button,
-                  {
-                    marginRight: 8,
-                    marginBottom: 8,
-                    backgroundColor:
-                      notifyMinutesBefore === m ? "#005BBB" : "#007AFF",
-                    paddingHorizontal: 12,
-                  },
-                ]}
-              >
-                <Text style={styles.buttonText}>{m} min</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </>
-      )}
-
       <Text style={styles.header}>Upcoming Events</Text>
 
-      {eventsToShow.map((event, idx) => (
-        <View key={idx} style={styles.eventRow}>
+      {eventsToShow.map((event) => (
+        <View
+          key={`${event.event}-${event.start.getTime()}`}
+          style={styles.eventRow}
+        >
           <Text style={styles.eventTime}>
             {event.start.toLocaleTimeString([], {
               hour: "2-digit",
@@ -367,7 +308,7 @@ export default function HomeScreen() {
               isSpecialEvent(event) && { color: "#E87038" },
             ]}
           >
-            {event.event}
+            {event.event.replace(/special/gi, "").trim()}
           </Text>
         </View>
       ))}
@@ -430,9 +371,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginBottom: 10,
   },
-  buttonSelected: {
-    backgroundColor: "#005BBB",
-  },
   buttonText: {
     color: "#fff",
     fontWeight: "600",
@@ -441,5 +379,6 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 16,
     textAlign: "center",
+    padding: 20,
   },
 });
