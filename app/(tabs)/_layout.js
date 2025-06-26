@@ -10,8 +10,9 @@ export default function TabsLayout() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarStyle: { backgroundColor: "#111" },
-        tabBarActiveTintColor: "#fff",
+        tabBarStyle: { backgroundColor: "#111", borderTopWidth: 0 },
+        tabBarActiveTintColor: "#E87038",
+        tabBarInactiveTintColor: "#aaa",
       }}
     >
       <Tab.Screen
@@ -29,7 +30,7 @@ export default function TabsLayout() {
         component={SettingsTab}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size} color={color} />
+            <Ionicons name="cog" size={size} color={color} />
           ),
           headerShown: false,
         }}

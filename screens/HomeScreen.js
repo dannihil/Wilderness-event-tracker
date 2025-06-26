@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -201,15 +202,16 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!countdownEvent) return;
 
-    let hasNotified = false;
-
-    const interval = setInterval(() => {
+    const updateCountdown = () => {
       const now = new Date();
       const diffMs = countdownEvent.start - now;
 
       if (diffMs <= 0) {
-        setCountdown("Event is live now!");
-        clearInterval(interval);
+        // Find the next event and start countdown for that
+        const next =
+          schedule.find((e) => e.start > countdownEvent.start) || schedule[0]; // fallback to first event (next day)
+
+        setCurrentEvent(next); // optionally update currentEvent
         return;
       }
 
@@ -230,20 +232,13 @@ export default function HomeScreen() {
             .padStart(2, "0")}`
         );
       }
+    };
 
-      if (diffMins === notifyMinutesBefore && !hasNotified) {
-        hasNotified = true;
+    updateCountdown(); // run immediately
 
-        scheduleNotification(
-          "Wilderness Event",
-          `${countdownEvent.event} starts in ${notifyMinutesBefore} minutes!`,
-          new Date()
-        );
-      }
-    }, 1000);
-
+    const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [countdownEvent, notifyMinutesBefore]);
+  }, [countdownEvent, schedule]);
 
   if (loading) {
     return <ActivityIndicator style={styles.loader} size="large" />;
@@ -270,10 +265,15 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
-        <Text style={[styles.header, { marginBottom: 50 }]}>
+        <Image
+          style={styles.image}
+          source={require("../assets/images/logo.png")}
+        ></Image>
+        <Text style={[styles.header, { marginBottom: 40 }]}>
           Wilderness Event Tracker
         </Text>
 
+        <Text style={{ color: "#fff", fontSize: 20 }}>Next event:</Text>
         <Text
           style={[
             styles.eventName,
@@ -325,7 +325,10 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
         </View>
-        <ScrollView>
+        <ScrollView
+          style={styles.ScrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {eventsToShow.map((event) => (
             <View
               key={`${event.event}-${event.start.getTime()}`}
@@ -395,7 +398,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#007AFF",
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 4,
+    borderRadius: 25,
     marginBottom: 10,
   },
   buttonText: {
@@ -407,5 +410,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     padding: 20,
+  },
+  image: {
+    height: 100,
+    width: 350,
+    marginBottom: 20,
+  },
+  ScrollView: {
+    width: 430,
+    paddingRight: 70,
+    paddingLeft: 70,
+    paddingTop: 5,
+    borderRadius: 10,
+    backgroundColor: "#151515",
   },
 });

@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#333",
     marginRight: 10,
     marginBottom: 10,
-    borderRadius: 5,
+    borderRadius: 15,
   },
   selected: { backgroundColor: "#007AFF" },
   text: { color: "#fff" },
