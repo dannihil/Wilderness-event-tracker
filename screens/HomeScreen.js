@@ -138,55 +138,14 @@ export default function HomeScreen() {
 
   // Schedule notifications whenever relevant dependencies change
   useEffect(() => {
-    let isCancelled = false;
-
-    async function scheduleNotifications() {
-      try {
-        console.log("Cancelling all notifications...");
-        await cancelAllNotifications();
-
-        if (isCancelled) return;
-
-        if (!eventsToNotify.length) {
-          console.log("No events to notify.");
-          return;
-        }
-
-        const now = new Date();
-        console.log(
-          `Scheduling notifications for ${eventsToNotify.length} events, notifyMinutesBefore=${notifyMinutesBefore}`
-        );
-
-        for (const event of eventsToNotify) {
-          const notifyTime = new Date(
-            event.start.getTime() - notifyMinutesBefore * 60 * 1000
-          );
-
-          if (notifyTime > now) {
-            const title = isSpecialEvent(event)
-              ? "Special Wilderness Event Reminder!"
-              : "Wilderness Event";
-
-            await scheduleNotification(
-              title,
-              `${event.event
-                .replace(/special/gi, "")
-                .trim()} starts in ${notifyMinutesBefore} minutes!`,
-              notifyTime
-            );
-          }
-        }
-      } catch (err) {
-        console.error("Error scheduling notifications:", err);
-      }
+    if (schedule.length) {
+      rescheduleAllNotifications(
+        schedule,
+        notifyPreference,
+        notifyMinutesBefore
+      );
     }
-
-    scheduleNotifications();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [eventsToNotify, notifyMinutesBefore]);
+  }, [schedule, notifyPreference, notifyMinutesBefore]);
 
   // Countdown event selection logic
   const countdownEvent = (() => {
@@ -261,6 +220,53 @@ export default function HomeScreen() {
   const eventsToShow = showAllEvents
     ? filteredNextEvents.slice(0, MAX_EVENTS_TO_SHOW)
     : filteredNextEvents.slice(0, DEFAULT_EVENTS_TO_SHOW);
+
+  async function rescheduleAllNotifications(
+    schedule,
+    preference,
+    minutesBefore
+  ) {
+    const now = new Date();
+
+    // Filter events based on preference
+    let eventsToNotify = [];
+    if (preference === "all") {
+      eventsToNotify = schedule;
+    } else if (preference === "special") {
+      eventsToNotify = schedule.filter((event) =>
+        event.event.toLowerCase().includes("special")
+      );
+    }
+
+    console.log("Cancelling all notifications...");
+    await cancelAllNotifications();
+
+    if (!eventsToNotify.length) {
+      console.log("No events to notify.");
+      return;
+    }
+
+    console.log(`Scheduling ${eventsToNotify.length} notifications...`);
+
+    for (const event of eventsToNotify) {
+      const notifyTime = new Date(
+        event.start.getTime() - minutesBefore * 60 * 1000
+      );
+      if (notifyTime > now) {
+        const title = event.event.toLowerCase().includes("special")
+          ? "Special Wilderness Event Reminder!"
+          : "Wilderness Event";
+
+        await scheduleNotification(
+          title,
+          `${event.event
+            .replace(/special/gi, "")
+            .trim()} starts in ${minutesBefore} minutes!`,
+          notifyTime
+        );
+      }
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>

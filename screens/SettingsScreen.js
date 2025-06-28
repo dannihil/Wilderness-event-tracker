@@ -54,6 +54,30 @@ export default function SettingsScreen() {
     );
   };
 
+  async function updateNotificationSettings(newMinutes, newPref) {
+    await AsyncStorage.setItem(PREF_KEY, String(newMinutes));
+    await AsyncStorage.setItem(NOTIFY_TYPE_KEY, newPref);
+    setNotifyMinutesBefore(newMinutes);
+    setNotifyPreference(newPref);
+
+    console.log(
+      `Updated settings: notifyMinutesBefore = ${newMinutes}, notifyPreference = ${newPref}`
+    );
+
+    Alert.alert(
+      "Settings Updated",
+      `You will be notified ${newMinutes} minutes before ${
+        newPref === "all"
+          ? "all events"
+          : newPref === "special"
+          ? "special events only"
+          : "no events"
+      }.`
+    );
+
+    rescheduleAllNotifications(schedule, newPref, newMinutes);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ padding: 20 }}>
@@ -62,7 +86,7 @@ export default function SettingsScreen() {
           {notifyMinuteOptions.map((m) => (
             <TouchableOpacity
               key={m}
-              onPress={() => saveMinutes(m)}
+              onPress={() => updateNotificationSettings(m, notifyPreference)}
               style={[
                 styles.button,
                 notifyMinutesBefore === m && styles.selected,
@@ -80,7 +104,9 @@ export default function SettingsScreen() {
           {notifyTypes.map(({ key, label }) => (
             <TouchableOpacity
               key={key}
-              onPress={() => savePreference(key)}
+              onPress={() =>
+                updateNotificationSettings(notifyMinutesBefore, key)
+              }
               style={[
                 styles.button,
                 notifyPreference === key && styles.selected,

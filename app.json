@@ -8,6 +8,7 @@
     "scheme": "wildernesseventtracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dannihil.wildernesseventtracker",
