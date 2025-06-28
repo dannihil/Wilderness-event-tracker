@@ -9,6 +9,9 @@ import {
   View,
 } from "react-native";
 
+import { rescheduleAllNotifications } from "../utils/notifications"; // Adjust path if needed
+import { buildSchedule } from "../utils/scheduleHelper"; // Adjust path if needed
+
 const PREF_KEY = "notifyMinutesBefore";
 const NOTIFY_TYPE_KEY = "notifyPreference";
 
@@ -32,28 +35,6 @@ export default function SettingsScreen() {
     })();
   }, []);
 
-  const saveMinutes = async (minutes) => {
-    setNotifyMinutesBefore(minutes);
-    await AsyncStorage.setItem(PREF_KEY, minutes.toString());
-    console.log(`✅ Saved notifyMinutesBefore = ${minutes}`);
-    Alert.alert(
-      "Notification time saved",
-      `You will be notified ${minutes} minutes before events.`
-    );
-  };
-
-  const savePreference = async (pref) => {
-    setNotifyPreference(pref);
-    await AsyncStorage.setItem(NOTIFY_TYPE_KEY, pref);
-    console.log(`✅ Saved notifyPreference = ${pref}`);
-    Alert.alert(
-      "Notification preference saved",
-      `You chose to be notified: ${
-        notifyTypes.find((t) => t.key === pref)?.label
-      }.`
-    );
-  };
-
   async function updateNotificationSettings(newMinutes, newPref) {
     await AsyncStorage.setItem(PREF_KEY, String(newMinutes));
     await AsyncStorage.setItem(NOTIFY_TYPE_KEY, newPref);
@@ -75,7 +56,8 @@ export default function SettingsScreen() {
       }.`
     );
 
-    rescheduleAllNotifications(schedule, newPref, newMinutes);
+    const schedule = buildSchedule(); // ← Get up-to-date event schedule
+    await rescheduleAllNotifications(schedule, newPref, newMinutes); // ← Reschedule with new settings
   }
 
   return (
