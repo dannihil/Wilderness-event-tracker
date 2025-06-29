@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "wilderness-event-tracker",
+    "name": "Wildy Tracker",
     "slug": "wilderness-event-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/WETicon.png",
     "scheme": "wildernesseventtracker",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -20,8 +20,8 @@
     "android": {
       "package": "com.dannihil.wildernesseventtracker",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/WETicon.png",
+        "backgroundColor": "#111"
       },
       "edgeToEdgeEnabled": true,
       "permissions": ["VIBRATE", "RECEIVE_BOOT_COMPLETED"]
@@ -29,17 +29,17 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/WETicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/WETicon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#111"
         }
       ],
       "expo-notifications"
