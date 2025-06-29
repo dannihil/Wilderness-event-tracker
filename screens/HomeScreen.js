@@ -3,9 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -33,6 +35,10 @@ export default function HomeScreen() {
   const [filterSpecial, setFilterSpecial] = useState(false); // UI filter toggle
   const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
   const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
 
   // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
@@ -166,23 +172,22 @@ export default function HomeScreen() {
       const diffMs = countdownEvent.start - now;
 
       if (diffMs <= 0) {
-        // Find the next event and start countdown for that
         const next =
-          schedule.find((e) => e.start > countdownEvent.start) || schedule[0]; // fallback to first event (next day)
-
-        setCurrentEvent(next); // optionally update currentEvent
+          schedule.find((e) => e.start > countdownEvent.start) || schedule[0];
+        setCurrentEvent(next);
         return;
       }
 
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
-      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      const totalSeconds = Math.floor(diffMs / 1000);
+      const diffHrs = Math.floor(totalSeconds / 3600);
+      const diffMins = Math.floor((totalSeconds % 3600) / 60);
+      const diffSecs = totalSeconds % 60;
 
       if (diffHrs >= 1) {
         setCountdown(
-          `${diffHrs}:${diffMins.toString().padStart(2, "0")}:${diffSecs
+          `${diffHrs.toString().padStart(2, "0")}:${diffMins
             .toString()
-            .padStart(2, "0")}`
+            .padStart(2, "0")}:${diffSecs.toString().padStart(2, "0")}`
         );
       } else {
         setCountdown(
@@ -268,18 +273,38 @@ export default function HomeScreen() {
     }
   }
 
+  function getWikiUrl(eventName) {
+    const name = eventName.replace(/special/gi, "").trim();
+    const encoded = encodeURIComponent(name.replace(/\s+/g, "_"));
+    return `https://runescape.wiki/w/Wilderness_Flash_Events#${encoded}`;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         <Image
           style={styles.image}
-          source={require("../assets/images/logo.png")}
-        ></Image>
-        <Text style={[styles.header, { marginBottom: 40 }]}>
-          Wilderness Event Tracker
-        </Text>
+          source={require("../assets/images/texticon.png")}
+        />
 
-        <Text style={{ color: "#fff", fontSize: 20 }}>Next event:</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 20,
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
+            {filterSpecial ? "Show All Events" : "Show Only Special Events"}
+          </Text>
+          <Switch
+            value={filterSpecial}
+            onValueChange={setFilterSpecial}
+            trackColor={{ false: "#007AFF", true: "#444" }}
+            thumbColor={filterSpecial ? "#E87038" : "#fff"}
+          />
+        </View>
+
         <Text
           style={[
             styles.eventName,
@@ -297,18 +322,31 @@ export default function HomeScreen() {
         <Text style={styles.timer}>{countdown}</Text>
 
         <TouchableOpacity
-          onPress={() => setFilterSpecial(!filterSpecial)}
-          style={[
-            styles.button,
-            {
-              backgroundColor: filterSpecial ? "#444" : "#007AFF",
-              marginBottom: 50,
-            },
-          ]}
+          onPress={() => {
+            const activeEvent = countdownEvent || currentEvent;
+            if (activeEvent?.event) {
+              const url = getWikiUrl(activeEvent.event);
+              Linking.openURL(url).catch((err) =>
+                console.error("Failed to open wiki page:", err)
+              );
+            }
+          }}
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: 50,
+            backgroundColor: "#2F2F2F",
+            borderRadius: 50,
+          }}
         >
-          <Text style={styles.buttonText}>
-            {filterSpecial ? "Show All Events" : "Show Only Special Events"}
-          </Text>
+          <Image
+            source={require("../assets/images/wikibutton.png")}
+            style={{
+              width: 100,
+              height: 100,
+              padding: 10,
+            }}
+          />
         </TouchableOpacity>
 
         <View
@@ -389,7 +427,6 @@ const styles = StyleSheet.create({
   },
   eventRow: {
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
     width: "100%",
     marginBottom: 8,
@@ -401,7 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#2F2F2F",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 25,
@@ -420,7 +457,7 @@ const styles = StyleSheet.create({
   image: {
     height: 100,
     width: 350,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   ScrollView: {
     width: 430,

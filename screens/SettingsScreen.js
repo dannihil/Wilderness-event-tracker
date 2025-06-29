@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -99,12 +100,18 @@ export default function SettingsScreen() {
           ))}
         </View>
       </View>
+      <View style={styles.settingsImage}>
+        <Image
+          style={styles.image}
+          source={require("../assets/images/texticon.png")}
+        ></Image>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111", padding: 20 },
+  container: { flex: 1, backgroundColor: "#15181A", padding: 20 },
   header: { fontSize: 18, color: "#aaa", marginBottom: 15 },
   row: { flexDirection: "row", flexWrap: "wrap" },
   button: {
@@ -116,4 +123,15 @@ const styles = StyleSheet.create({
   },
   selected: { backgroundColor: "#007AFF" },
   text: { color: "#fff" },
+  settingsImage: {
+    position: "absolute",
+    bottom: 50, // adjust this to be just above your bottom navbar height
+    left: 0,
+    right: 0,
+    alignItems: "center", // centers horizontally
+  },
+  image: {
+    height: 100,
+    width: 400,
+  },
 });
