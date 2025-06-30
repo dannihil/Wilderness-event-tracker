@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   Linking,
   SafeAreaView,
@@ -24,6 +25,9 @@ const NOTIFY_TYPE_KEY = "notifyPreference";
 
 const DEFAULT_EVENTS_TO_SHOW = 5;
 const MAX_EVENTS_TO_SHOW = 11;
+
+const screenWidth = Dimensions.get("window").width;
+const imageSize = screenWidth * 0.15; // 20% of screen width
 
 export default function HomeScreen() {
   const [schedule, setSchedule] = useState([]);
@@ -316,6 +320,7 @@ export default function HomeScreen() {
         >
           {(countdownEvent?.event || currentEvent?.event)
             ?.replace(/special/gi, "")
+            .replace(/rampage/gi, "")
             .trim()}
         </Text>
 
@@ -336,15 +341,15 @@ export default function HomeScreen() {
             alignItems: "center",
             marginBottom: 50,
             backgroundColor: "#2F2F2F",
-            borderRadius: 50,
+            borderRadius: 100,
+            padding: 10,
           }}
         >
           <Image
             source={require("../assets/images/wikibutton.png")}
             style={{
-              width: 100,
-              height: 100,
-              padding: 10,
+              width: imageSize,
+              height: imageSize,
             }}
           />
         </TouchableOpacity>
@@ -391,7 +396,10 @@ export default function HomeScreen() {
                   { fontSize: 20 },
                 ]}
               >
-                {event.event.replace(/special/gi, "").trim()}
+                {event.event
+                  .replace(/special/gi, "")
+                  .replace(/rampage/gi, "")
+                  .trim()}
               </Text>
             </View>
           ))}

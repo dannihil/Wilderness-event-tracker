@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Wildy Tracker",
+    "name": "Wildy Events",
     "slug": "wilderness-event-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -39,7 +39,7 @@
           "image": "./assets/images/SplashIcon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#17171C"
+          "backgroundColor": "#111"
         }
       ],
       "expo-notifications"

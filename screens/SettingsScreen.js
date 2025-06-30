@@ -111,7 +111,7 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#15181A", padding: 20 },
+  container: { flex: 1, backgroundColor: "#111", padding: 20 },
   header: { fontSize: 18, color: "#aaa", marginBottom: 15 },
   row: { flexDirection: "row", flexWrap: "wrap" },
   button: {
