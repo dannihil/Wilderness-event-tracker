@@ -1,15 +1,15 @@
 [
   {
     "event": "Spider Swarm",
-    "date": "05:00"
+    "date": "19:00"
   },
   {
     "event": "Unnatural Outcrop",
-    "date": "06:00"
+    "date": "20:00"
   },
   {
     "event": "Stryke the WyrmSpecial",
-    "date": "07:00"
+    "date": "21:00"
   },
   {
     "event": "Demon Stragglers",
@@ -41,18 +41,18 @@
   },
   {
     "event": "Lost Souls",
-    "date": "01:00"
+    "date": "15:00"
   },
   {
     "event": "Ramokee Incursion",
-    "date": "02:00"
+    "date": "16:00"
   },
   {
     "event": "Displaced Energy",
-    "date": "03:00"
+    "date": "17:00"
   },
   {
     "event": "Evil Bloodwood TreeSpecial",
-    "date": "04:00"
+    "date": "18:00"
   }
 ]
