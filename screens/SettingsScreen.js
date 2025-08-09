@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
+  Modal,
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -10,8 +11,8 @@ import {
   View,
 } from "react-native";
 
-import { rescheduleAllNotifications } from "../utils/notifications"; // Adjust path if needed
-import { buildSchedule } from "../utils/scheduleHelper"; // Adjust path if needed
+import { fetchScheduleFromRemote, isSpecialEvent } from "../utils/events";
+import { rescheduleAllNotifications } from "../utils/notifications";
 
 const PREF_KEY = "notifyMinutesBefore";
 const NOTIFY_TYPE_KEY = "notifyPreference";
@@ -26,6 +27,7 @@ const notifyTypes = [
 export default function SettingsScreen() {
   const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15);
   const [notifyPreference, setNotifyPreference] = useState("all");
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -42,23 +44,17 @@ export default function SettingsScreen() {
     setNotifyMinutesBefore(newMinutes);
     setNotifyPreference(newPref);
 
-    console.log(
-      `Updated settings: notifyMinutesBefore = ${newMinutes}, notifyPreference = ${newPref}`
-    );
+    const schedule = await fetchScheduleFromRemote();
 
-    Alert.alert(
-      "Settings Updated",
-      `You will be notified ${newMinutes} minutes before ${
-        newPref === "all"
-          ? "all events"
-          : newPref === "special"
-          ? "special events only"
-          : "no events"
-      }.`
-    );
+    // Filter schedule by preference (if needed)
+    const filteredSchedule =
+      newPref === "special"
+        ? schedule.filter(isSpecialEvent)
+        : newPref === "none"
+        ? []
+        : schedule;
 
-    const schedule = buildSchedule(); // ← Get up-to-date event schedule
-    await rescheduleAllNotifications(schedule, newPref, newMinutes); // ← Reschedule with new settings
+    await rescheduleAllNotifications(filteredSchedule, newPref, newMinutes);
   }
 
   return (
@@ -75,7 +71,14 @@ export default function SettingsScreen() {
                 notifyMinutesBefore === m && styles.selected,
               ]}
             >
-              <Text style={styles.text}>{m} min</Text>
+              <Text
+                style={[
+                  styles.text,
+                  notifyMinutesBefore === m && styles.selectedText,
+                ]}
+              >
+                {m} min
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -95,7 +98,14 @@ export default function SettingsScreen() {
                 notifyPreference === key && styles.selected,
               ]}
             >
-              <Text style={styles.text}>{label}</Text>
+              <Text
+                style={[
+                  styles.text,
+                  notifyPreference === key && styles.selectedText,
+                ]}
+              >
+                {label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -104,7 +114,39 @@ export default function SettingsScreen() {
         <Image
           style={styles.image}
           source={require("../assets/images/texticon.png")}
-        ></Image>
+        />
+
+        {/* Custom button */}
+        <Pressable
+          style={styles.modalbutton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.modalbuttonText}>Disclaimer</Text>
+        </Pressable>
+
+        {/* Modal */}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <SafeAreaView style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modaltext}>
+                This app is an unofficial companion app and is not affiliated
+                with Jagex or its developers. This app is completely free and
+                does not contain advertisements or in-app purchases.
+              </Text>
+              <Pressable
+                style={styles.modalbutton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalbuttonText}>Close</Text>
+              </Pressable>
+            </View>
+          </SafeAreaView>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -121,17 +163,50 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 15,
   },
-  selected: { backgroundColor: "#007AFF" },
+  selected: { backgroundColor: "white", color: "black" },
+  selectedText: {
+    color: "black",
+  },
   text: { color: "#fff" },
   settingsImage: {
     position: "absolute",
-    bottom: 50, // adjust this to be just above your bottom navbar height
+    bottom: 50,
     left: 0,
     right: 0,
-    alignItems: "center", // centers horizontally
+    alignItems: "center",
   },
   image: {
     height: 100,
     width: 400,
+  },
+  modalbutton: {
+    backgroundColor: "#333",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  modalbuttonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 24,
+    borderRadius: 12,
+    width: "80%",
+  },
+  modaltext: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#333",
   },
 });

@@ -29,6 +29,7 @@ export async function requestNotificationPermission() {
 }
 
 export async function scheduleNotification(title, body, date) {
+  console.log("Scheduling notification for", title, "at", date);
   await Notifications.scheduleNotificationAsync({
     content: {
       title,
@@ -65,10 +66,31 @@ export async function scheduleNotificationsForEvents(
     );
     if (notifyTime > now) {
       await scheduleNotification(
-        isSpecial(event) ? "Special Wilderness Event" : "Wilderness Event",
-        `${event.event} starts in ${notifyMinutesBefore} minutes!`,
+        isSpecial(event)
+          ? "Special Wilderness Event reminder"
+          : "Wilderness Event reminder",
+        `${event.event.replace(
+          /special/gi,
+          ""
+        )} starts in ${notifyMinutesBefore} minutes!`,
         notifyTime
       );
     }
   }
+}
+
+export async function rescheduleAllNotifications(
+  schedule,
+  notifyPreference,
+  notifyMinutesBefore
+) {
+  console.warn("updateNotificationSettings CALLED");
+  const permissionGranted = await requestNotificationPermission();
+  if (!permissionGranted) return;
+
+  await scheduleNotificationsForEvents(
+    schedule,
+    notifyPreference,
+    notifyMinutesBefore
+  );
 }
