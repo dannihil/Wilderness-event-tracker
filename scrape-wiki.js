@@ -5,7 +5,16 @@ const path = require("path");
 async function scrape() {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage", // reduces memory issues in containers
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process", // <- sometimes needed, try removing if issues persist
+      "--disable-gpu",
+    ],
   });
   const page = await browser.newPage();
 
