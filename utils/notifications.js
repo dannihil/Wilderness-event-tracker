@@ -29,7 +29,7 @@ export async function requestNotificationPermission() {
 }
 
 export async function scheduleNotification(title, body, date) {
-  console.log("Scheduling notification for", title, "at", date);
+  console.log("Scheduling notification for", title, body, "at", date);
   await Notifications.scheduleNotificationAsync({
     content: {
       title,
