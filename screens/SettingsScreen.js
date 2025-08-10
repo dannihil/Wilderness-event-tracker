@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -58,102 +59,110 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ padding: 20 }}>
-        <Text style={styles.header}>Notify how many minutes before event?</Text>
-        <View style={styles.row}>
-          {notifyMinuteOptions.map((m) => (
-            <TouchableOpacity
-              key={m}
-              onPress={() => updateNotificationSettings(m, notifyPreference)}
-              style={[
-                styles.button,
-                notifyMinutesBefore === m && styles.selected,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.text,
-                  notifyMinutesBefore === m && styles.selectedText,
-                ]}
-              >
-                {m} min
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={[styles.header, { marginTop: 20 }]}>
-          Notification type
-        </Text>
-        <View style={styles.row}>
-          {notifyTypes.map(({ key, label }) => (
-            <TouchableOpacity
-              key={key}
-              onPress={() =>
-                updateNotificationSettings(notifyMinutesBefore, key)
-              }
-              style={[
-                styles.button,
-                notifyPreference === key && styles.selected,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.text,
-                  notifyPreference === key && styles.selectedText,
-                ]}
-              >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={styles.settingsImage}>
-        <Image
-          style={styles.image}
-          source={require("../assets/images/texticon.png")}
-        />
-
-        {/* Custom button */}
-        <Pressable
-          style={styles.modalbutton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Text style={styles.modalbuttonText}>Disclaimer</Text>
-        </Pressable>
-
-        {/* Modal */}
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <SafeAreaView style={styles.modalBackground}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modaltext}>
-                This is an unofficial companion app and is not affiliated with
-                or endorsed by Jagex Ltd. This app is completely free, with no
-                advertisements or in-app purchases.
-              </Text>
-              <Pressable
-                style={styles.modalbutton}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.modalbuttonText}>Close</Text>
-              </Pressable>
+    <>
+      <LinearGradient colors={["#0d0d0d", "#1a1a1a"]} style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
+          <View style={{ padding: 20 }}>
+            <Text style={styles.header}>
+              Notify how many minutes before event?
+            </Text>
+            <View style={styles.row}>
+              {notifyMinuteOptions.map((m) => (
+                <TouchableOpacity
+                  key={m}
+                  onPress={() =>
+                    updateNotificationSettings(m, notifyPreference)
+                  }
+                  style={[
+                    styles.button,
+                    notifyMinutesBefore === m && styles.selected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.text,
+                      notifyMinutesBefore === m && styles.selectedText,
+                    ]}
+                  >
+                    {m} min
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          </SafeAreaView>
-        </Modal>
-      </View>
-    </SafeAreaView>
+
+            <Text style={[styles.header, { marginTop: 20 }]}>
+              Notification type
+            </Text>
+            <View style={styles.row}>
+              {notifyTypes.map(({ key, label }) => (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() =>
+                    updateNotificationSettings(notifyMinutesBefore, key)
+                  }
+                  style={[
+                    styles.button,
+                    notifyPreference === key && styles.selected,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.text,
+                      notifyPreference === key && styles.selectedText,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          <View style={styles.settingsImage}>
+            <Image
+              style={styles.image}
+              source={require("../assets/images/texticon.png")}
+            />
+
+            {/* Custom button */}
+            <Pressable
+              style={styles.modalbutton}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={styles.modalbuttonText}>Disclaimer</Text>
+            </Pressable>
+
+            {/* Modal */}
+            <Modal
+              visible={modalVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setModalVisible(false)}
+            >
+              <SafeAreaView style={styles.modalBackground}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modaltext}>
+                    This is an unofficial companion app and is not affiliated
+                    with or endorsed by Jagex Ltd. This app is completely free,
+                    with no advertisements or in-app purchases.
+                  </Text>
+                  <Pressable
+                    style={styles.modalbutton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.modalbuttonText}>Close</Text>
+                  </Pressable>
+                </View>
+              </SafeAreaView>
+            </Modal>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111", padding: 20 },
+  container: { flex: 1, backgroundColor: "transparent", padding: 20 },
   header: { fontSize: 18, color: "#aaa", marginBottom: 15 },
   row: { flexDirection: "row", flexWrap: "wrap" },
   button: {
