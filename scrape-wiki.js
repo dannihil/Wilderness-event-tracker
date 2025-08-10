@@ -11,36 +11,31 @@ async function scrape() {
     console.log(`HTTP status: ${res.status}`);
 
     const $ = cheerio.load(res.data);
-
     const schedule = [];
 
-    // Select table by id
-    const table = $("table#wfe-rotations, table#reload").first();
-
-    table.find("tbody tr").each((i, el) => {
+    // Select the specific table by class as per your example
+    $(
+      "table.wikitable.align-center-1.align-right-2.wfe-rotations tbody tr"
+    ).each((i, el) => {
       const cols = $(el).find("td");
+      if (cols.length >= 2) {
+        // Event name from <a>
+        const eventName = $(cols[0]).find("a").text().trim();
 
-      // Ignore rows without exactly 2 columns (to skip summary rows)
-      if (cols.length !== 2) return;
+        // Check if there is a special label in <i><small>
+        const specialLabel = $(cols[0]).find("i small").text().trim();
 
-      // Extract event name (including "Special" if present)
-      let name = $(cols[0]).find("a").first().text().trim();
+        // Combine event name with " Special" if special label exists
+        const fullName = specialLabel ? `${eventName} Special` : eventName;
 
-      // Check for "Special" in italics inside the same cell and append it
-      if ($(cols[0]).find("i small").length > 0) {
-        name += " Special";
+        // Time from second <td> <small>
+        const time = $(cols[1]).find("small").text().trim();
+
+        // Validate time format hh:mm
+        if (/^\d{2}:\d{2}$/.test(time)) {
+          schedule.push({ event: fullName, date: time });
+        }
       }
-
-      // Extract time string inside <small>
-      const timeStr = $(cols[1]).find("small").first().text().trim();
-
-      // Validate time format
-      if (!/^\d{2}:\d{2}$/.test(timeStr)) {
-        console.warn(`Invalid time format for event '${name}': ${timeStr}`);
-        return;
-      }
-
-      schedule.push({ event: name, date: timeStr });
     });
 
     console.log(`Filtered down to ${schedule.length} valid events`);
@@ -54,4 +49,7 @@ async function scrape() {
   }
 }
 
-scrape();
+scrape().catch((err) => {
+  console.error("❌ Scraping failed:", err);
+  process.exit(1);
+});
