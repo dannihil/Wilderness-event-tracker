@@ -6,20 +6,19 @@ const path = require("path");
 async function scrape() {
   try {
     const res = await axios.get(
-      "https://runescape.wiki/w/Wilderness_Flash_Events"
+      "https://runescape.wiki/w/Wilderness_Flash_Events",
+      { headers: { "Cache-Control": "no-cache" } }
     );
     console.log(`HTTP status: ${res.status}`);
 
     const $ = cheerio.load(res.data);
     const schedule = [];
 
-    // Select the specific table by class as per your example
-    $(
-      "table.wikitable.align-center-1.align-right-2.wfe-rotations tbody tr"
-    ).each((i, el) => {
+    // Select the specific table by its ID "reload"
+    $("table#reload tbody tr").each((i, el) => {
       const cols = $(el).find("td");
       if (cols.length >= 2) {
-        // Event name from <a>
+        // Event name from first <td> <a>
         const eventName = $(cols[0]).find("a").text().trim();
 
         // Check if there is a special label in <i><small>
@@ -31,8 +30,9 @@ async function scrape() {
         // Time from second <td> <small>
         const time = $(cols[1]).find("small").text().trim();
 
-        // Validate time format hh:mm
+        // Validate time format hh:mm before pushing
         if (/^\d{2}:\d{2}$/.test(time)) {
+          console.log(`Scraped event: "${fullName}" at time: ${time}`); // Debug log
           schedule.push({ event: fullName, date: time });
         }
       }
