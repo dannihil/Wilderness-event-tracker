@@ -1,58 +1,58 @@
 [
   {
     "event": "Spider Swarm",
-    "date": "03:00"
+    "time": "03:00"
   },
   {
     "event": "Unnatural Outcrop",
-    "date": "04:00"
+    "time": "04:00"
   },
   {
     "event": "Stryke the WyrmSpecial",
-    "date": "05:00"
+    "time": "05:00"
   },
   {
     "event": "Demon Stragglers",
-    "date": "06:00"
+    "time": "06:00"
   },
   {
     "event": "Butterfly Swarm",
-    "date": "07:00"
+    "time": "07:00"
   },
   {
     "event": "King Black Dragon RampageSpecial",
-    "date": "08:00"
+    "time": "08:00"
   },
   {
     "event": "Forgotten Soldiers",
-    "date": "09:00"
+    "time": "09:00"
   },
   {
     "event": "Surprising Seedlings",
-    "date": "10:00"
+    "time": "10:00"
   },
   {
     "event": "Hellhound Pack",
-    "date": "21:00"
+    "time": "21:00"
   },
   {
     "event": "Infernal StarSpecial",
-    "date": "22:00"
+    "time": "22:00"
   },
   {
     "event": "Lost Souls",
-    "date": "23:00"
+    "time": "23:00"
   },
   {
     "event": "Ramokee Incursion",
-    "date": "00:00"
+    "time": "00:00"
   },
   {
     "event": "Displaced Energy",
-    "date": "01:00"
+    "time": "01:00"
   },
   {
     "event": "Evil Bloodwood TreeSpecial",
-    "date": "02:00"
+    "time": "02:00"
   }
 ]
