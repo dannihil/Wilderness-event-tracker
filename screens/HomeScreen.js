@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -39,10 +39,6 @@ export default function HomeScreen() {
   const [filterSpecial, setFilterSpecial] = useState(false); // UI filter toggle
   const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
   const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
 
   // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
@@ -151,13 +147,6 @@ export default function HomeScreen() {
     }
     loadPrefs();
   }, []);
-
-  // Choose events to notify for, filtered by notification preference
-  const eventsToNotify = useMemo(() => {
-    if (notifyPreference === "all") return schedule;
-    if (notifyPreference === "special") return schedule.filter(isSpecialEvent);
-    return [];
-  }, [schedule, notifyPreference]);
 
   // Schedule notifications whenever relevant dependencies change
   useEffect(() => {
@@ -304,13 +293,7 @@ export default function HomeScreen() {
           source={require("../assets/images/texticon.png")}
         />
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
+        <View style={styles.SpecialToggleView}>
           <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
             {filterSpecial ? "Show All Events" : "Show Only Special Events"}
           </Text>
@@ -349,14 +332,7 @@ export default function HomeScreen() {
               );
             }
           }}
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: 50,
-            backgroundColor: "#2F2F2F",
-            borderRadius: 100,
-            padding: 10,
-          }}
+          style={styles.WikiButton}
         >
           <Image
             source={require("../assets/images/wikibutton.png")}
@@ -367,14 +343,7 @@ export default function HomeScreen() {
           />
         </TouchableOpacity>
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 20,
-          }}
-        >
+        <View style={styles.FutureEvents}>
           <Text style={styles.header}>Upcoming Events</Text>
           {filteredNextEvents.length > 5 && (
             <TouchableOpacity
@@ -487,5 +456,24 @@ const styles = StyleSheet.create({
     paddingTop: 5,
     borderRadius: 10,
     backgroundColor: "#151515",
+  },
+  FutureEvents: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 20,
+  },
+  WikiButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 50,
+    backgroundColor: "#2F2F2F",
+    borderRadius: 100,
+    padding: 10,
+  },
+  SpecialToggleView: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
   },
 });
