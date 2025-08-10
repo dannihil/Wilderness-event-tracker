@@ -31,7 +31,7 @@ This app is an unofficial companion app and is not affiliated with or endorsed b
 - When you open the app, the **Home Screen** shows the next event with a countdown.  
 - Use the toggle to filter between all events or only special ones.  
 - Scroll through upcoming events in the list below.  
-- Head to the **Settings Screen** to customize notification timing and preferences.  
+- Head to the **Notifications Screen** to customize notification timing and preferences.  
 - Tap the **Disclaimer** button to read the app’s disclaimer.
 
 ---
