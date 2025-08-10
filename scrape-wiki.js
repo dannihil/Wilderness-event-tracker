@@ -14,19 +14,18 @@ async function scrape() {
 
     const schedule = [];
 
-    // Find the "Current rotation" table
+    // Find only the Current rotation table
     $("caption:contains('Current rotation')")
       .closest("table")
       .find("tbody tr")
       .each((i, el) => {
         const cols = $(el).find("td");
         if (cols.length >= 2) {
-          const name = $(cols[0]).text().trim();
-          const date = $(cols[1]).text().trim();
+          const name = $(cols[0]).text().replace(/\s+/g, " ").trim();
+          const time = $(cols[1]).text().trim();
 
-          // Only keep valid times and event names
-          if (/^\d{2}:\d{2}$/.test(date) && /^[A-Za-z].+/.test(name)) {
-            schedule.push({ event: name, time: date });
+          if (/^\d{2}:\d{2}$/.test(time)) {
+            schedule.push({ event: name, time });
           }
         }
       });
