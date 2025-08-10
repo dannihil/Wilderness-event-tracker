@@ -19,6 +19,9 @@ import {
   scheduleNotification,
 } from "../utils/notifications"; // adjust path
 
+// Add this import or define fetchWikiEvents somewhere
+import { fetchWikiEvents } from "../utils/fetchWikiEvents"; // <-- your wiki fetch function here
+
 const EVENTS_URL =
   "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/main/events.json";
 const PREF_KEY = "notifyMinutesBefore";
@@ -69,38 +72,24 @@ export default function HomeScreen() {
     return event.event.toLowerCase().includes("special");
   }
 
-  // Fetch schedule from remote JSON
+  // *** REPLACED this useEffect to fetch from Wiki API function directly ***
   useEffect(() => {
-    async function fetchSchedule() {
+    async function loadEvents() {
+      setLoading(true);
       try {
-        const res = await fetch(EVENTS_URL);
-        const data = await res.json();
+        const events = await fetchWikiEvents();
 
-        if (!data || data.length === 0) {
-          setSchedule([]);
-          setCurrentEvent(null);
-          setNextEvents([]);
-          return;
-        }
-
-        const scheduledEvents = data
-          .map((event) => {
-            if (!event.date) {
-              console.warn("Event missing date:", event);
-              return null;
-            }
-
-            return {
-              ...event,
-              start: getNextOccurrence(event.date),
-            };
-          })
-          .filter(Boolean); // remove any null entries
-
-        scheduledEvents.sort((a, b) => a.start - b.start);
+        const scheduledEvents = events
+          .map((event) => ({
+            ...event,
+            start: getNextOccurrence(event.date),
+          }))
+          .filter((e) => e.start != null)
+          .sort((a, b) => a.start - b.start);
 
         setSchedule(scheduledEvents);
 
+        // Determine current event
         const now = new Date();
 
         let current = null;
@@ -114,7 +103,6 @@ export default function HomeScreen() {
             break;
           }
         }
-
         if (!current) current = scheduledEvents[0];
 
         const currentIndex = scheduledEvents.indexOf(current);
@@ -122,16 +110,16 @@ export default function HomeScreen() {
 
         setCurrentEvent(current);
         setNextEvents(future);
-      } catch (err) {
-        console.error("Failed to fetch event schedule:", err);
+      } catch (error) {
+        console.error("Error loading events:", error);
         setSchedule([]);
         setCurrentEvent(null);
         setNextEvents([]);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     }
-    fetchSchedule();
+
+    loadEvents();
   }, []);
 
   // Load user notification preferences on mount
@@ -330,65 +318,55 @@ export default function HomeScreen() {
               if (activeEvent?.event) {
                 const url = getWikiUrl(activeEvent.event);
                 Linking.openURL(url).catch((err) =>
-                  console.error("Failed to open wiki page:", err)
+                  console.error("Failed to open URL:", err)
                 );
               }
             }}
-            style={styles.WikiButton}
           >
-            <Image
-              source={require("../assets/images/wikibutton.png")}
-              style={{
-                width: imageSize,
-                height: imageSize,
-              }}
-            />
+            <Text style={styles.link}>Learn More on RuneScape Wiki</Text>
           </TouchableOpacity>
 
-          <View style={styles.FutureEvents}>
-            <Text style={styles.header}>Upcoming Events</Text>
-            {filteredNextEvents.length > 5 && (
-              <TouchableOpacity
-                onPress={() => setShowAllEvents(!showAllEvents)}
-                style={[styles.button, { marginTop: 10 }]}
-              >
-                <Text style={styles.buttonText}>
-                  {showAllEvents ? "Show Less" : "Show More"}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <ScrollView
-            style={styles.ScrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {eventsToShow.map((event) => (
-              <View
-                key={`${event.event}-${event.start.getTime()}`}
-                style={styles.eventRow}
-              >
-                <Text style={styles.eventTime}>
-                  {event.start.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-                <Text
-                  style={[
-                    styles.eventName,
-                    isSpecialEvent(event) && { color: "#E87038" },
-                    { fontSize: 20 },
-                  ]}
+          <ScrollView style={styles.list}>
+            {eventsToShow.map((event, i) => {
+              const isSpecial = isSpecialEvent(event);
+              return (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.event}
+                  onPress={() => {
+                    const url = getWikiUrl(event.event);
+                    Linking.openURL(url).catch((err) =>
+                      console.error("Failed to open URL:", err)
+                    );
+                  }}
                 >
-                  {event.event
-                    .replace(/special/gi, "")
-                    .replace(/rampage/gi, "")
-                    .trim()}
-                </Text>
-              </View>
-            ))}
+                  <Text
+                    style={[
+                      styles.eventNameSmall,
+                      isSpecial && { color: "#E87038" },
+                    ]}
+                  >
+                    {event.event.replace(/special/gi, "").trim()}
+                  </Text>
+                  <Text style={styles.eventTime}>
+                    {event.start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
+
+          <TouchableOpacity
+            onPress={() => setShowAllEvents(!showAllEvents)}
+            style={styles.showMoreBtn}
+          >
+            <Text style={{ color: "#fff" }}>
+              {showAllEvents ? "Show Less" : "Show More"}
+            </Text>
+          </TouchableOpacity>
         </SafeAreaView>
       </LinearGradient>
     </>
@@ -396,93 +374,75 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  loader: { flex: 1, justifyContent: "center" },
   container: {
     flex: 1,
-    alignItems: "center",
-    backgroundColor: "transparent",
-    padding: 20,
-  },
-  header: {
-    fontSize: screenWidth * 0.07,
-    marginBottom: 10,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  eventName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#b8b8b8",
-  },
-  eventTime: {
-    fontSize: 16,
-    color: "#ddd",
-    width: 80,
-  },
-  eventRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 8,
-  },
-  timer: {
-    fontSize: screenWidth * 0.1,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: "#2F2F2F",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 25,
-    marginBottom: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  error: {
-    color: "red",
-    fontSize: 16,
-    textAlign: "center",
-    padding: 20,
+    paddingHorizontal: 10,
   },
   image: {
-    height: 70,
-    width: screenWidth * 0.7,
-    marginBottom: 30,
-  },
-  ScrollView: {
-    width: screenWidth,
-    paddingRight: 70,
-    paddingLeft: 70,
-    paddingTop: 5,
-    borderRadius: 10,
-    backgroundColor: "rgba(92, 90, 90, 0.1)",
-  },
-  FutureEvents: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 20,
-  },
-  WikiButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 50,
-    marginTop: 20,
-    backgroundColor: "#2F2F2F",
-    borderRadius: 100,
-    padding: 10,
-    shadowColor: "#E87038",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
+    width: imageSize,
+    height: imageSize,
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginVertical: 15,
   },
   SpecialToggleView: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  eventName: {
+    fontSize: 28,
+    fontWeight: "700",
+    textAlign: "center",
+    color: "#fff",
+    marginBottom: 8,
+  },
+  timer: {
+    fontSize: 48,
+    fontWeight: "900",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  link: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#ccc",
+    textDecorationLine: "underline",
+    marginBottom: 12,
+  },
+  list: {
+    marginTop: 15,
+  },
+  event: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    borderBottomColor: "#555",
+    borderBottomWidth: 1,
+    paddingBottom: 6,
+  },
+  eventNameSmall: {
+    fontSize: 18,
+    color: "#ccc",
+  },
+  eventTime: {
+    fontSize: 18,
+    color: "#ccc",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  error: {
+    flex: 1,
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 50,
+  },
+  showMoreBtn: {
+    alignItems: "center",
+    marginVertical: 15,
   },
 });

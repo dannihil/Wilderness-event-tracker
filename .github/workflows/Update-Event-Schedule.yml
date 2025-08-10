@@ -25,11 +25,11 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm install axios cheerio
+        run: npm install cheerio node-fetch
 
       - name: Run scraper with logging
         run: |
-          node scrape-wiki.js > scraper.log 2>&1 || (echo "Scraper failed"; cat scraper.log; exit 1)
+          node fetchWikiEvents.js > scraper.log 2>&1 || (echo "Scraper failed"; cat scraper.log; exit 1)
 
       - name: Show scraper log
         run: cat scraper.log
