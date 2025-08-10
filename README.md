@@ -1,4 +1,4 @@
-# <img width="197" height="202" alt="WETicon" src="https://github.com/user-attachments/assets/46423ae4-c8f7-4a02-9976-57e0e6bafc17" /> Wildy Events
+# <img width="45" height="50" alt="WETicon" src="https://github.com/user-attachments/assets/46423ae4-c8f7-4a02-9976-57e0e6bafc17" /> Wildy Events
 
 **Wildy Events** is a React Native app designed to keep you updated on upcoming Wilderness events in RuneScape. Quickly see the next event with a live countdown, filter for all or just special events, and get customizable push notifications to stay ahead.
 
