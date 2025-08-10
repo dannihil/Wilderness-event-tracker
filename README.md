@@ -4,22 +4,31 @@
 
 ---
 
+## About
+
+Stay informed about all Wilderness events with an easy-to-use app that puts the latest info right at your fingertips. Whether you want notifications for every event or just the special ones, Wildy Events has you covered.
+
+---
+
 ## Features
 
 - **Home Screen**  
-  Displays the next Wilderness event with a countdown timer.  
-  Toggle between viewing **All Events** or **Only Special Events**.  
-  Shows a list of upcoming events for the next 8 to 10 hours.
+  See the next Wilderness event with a live countdown timer.  
+  Toggle between **All Events** or **Only Special Events**.  
+  Browse upcoming events for the next 8 to 10 hours.
 
 - **Notifications Screen**  
-  Choose how many minutes before an event you'd like to receive a push notification: 5, 10, 15, 30, or 60 minutes.  
-  Select notification preference: receive alerts for all events, only special events, or turn off notifications.
+  Choose how many minutes before an event you'd like to get a push notification: 5, 10, 15, 30, or 60 minutes.  
+  Select your notification preference: receive alerts for all events, only special events, or turn notifications off.
 
-<br/>
+---
 
-<img width="300" height="795" alt="Simulator Screenshot - iPhone 16 Pro - Home Screen" src="https://github.com/user-attachments/assets/f39d7d68-eeda-4267-9d54-d49b52ec7ca1" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width="300" height="796" alt="Simulator Screenshot - iPhone 16 Pro - Notifications Screen" src="https://github.com/user-attachments/assets/3b6f8add-174b-4d76-b6f5-7e58331617f7" />
+## Screenshots
 
-<br/>
+<img width="300" height="795" alt="Home Screen" src="https://github.com/user-attachments/assets/f39d7d68-eeda-4267-9d54-d49b52ec7ca1" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width="300" height="796" alt="Notifications Screen" src="https://github.com/user-attachments/assets/3b6f8add-174b-4d76-b6f5-7e58331617f7" />
+
+*Left: Home Screen with event countdown*  
+*Right: Notifications Screen for customizing alerts*
 
 ---
 
@@ -31,23 +40,23 @@ This app is an unofficial companion app and is not affiliated with or endorsed b
 
 ## How to Use
 
-- When you open the app, the **Home Screen** shows the next event with a countdown.  
-- Use the toggle to filter between **All Events** or **Only Special Events**.  
-- Scroll through upcoming events in the list below.  
-- Head to the **Notifications Screen** to customize notification timing and preferences.  
-- Tap the **Disclaimer** button to read the app’s disclaimer.
+- Open the app to view the **Home Screen** showing the next event with countdown.  
+- Use the toggle to switch between all events or only special ones.  
+- Scroll down to see upcoming events.  
+- Go to the **Notifications Screen** to set when and what notifications you want.  
+- Tap the **Disclaimer** button anytime to read the app’s disclaimer.
 
 ---
 
 ## Technologies
 
 - React Native  
-- AsyncStorage for local storage  
-- Push notifications tailored to user preferences  
-- Custom utilities for event scheduling and filtering
+- AsyncStorage for local data persistence  
+- Push notifications tailored to your preferences  
+- Custom utilities for scheduling and filtering events
 
 ---
 
 ## Contact
 
-Questions or feedback? Open an issue or contact me at [runenodeapps@gmail.com](mailto:runenodeapps@gmail.com).
+Questions or feedback? Open an issue or email me at **runenodeapps@gmail.com**.
