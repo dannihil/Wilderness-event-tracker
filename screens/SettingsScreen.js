@@ -134,9 +134,9 @@ export default function SettingsScreen() {
           <SafeAreaView style={styles.modalBackground}>
             <View style={styles.modalContent}>
               <Text style={styles.modaltext}>
-                This app is an unofficial companion app and is not affiliated
-                with Jagex or its developers. This app is completely free and
-                does not contain advertisements or in-app purchases.
+                This is an unofficial companion app and is not affiliated with
+                or endorsed by Jagex Ltd. This app is completely free, with no
+                advertisements or in-app purchases.
               </Text>
               <Pressable
                 style={styles.modalbutton}

@@ -315,7 +315,7 @@ export default function HomeScreen() {
             isSpecialEvent(countdownEvent || currentEvent) && {
               color: "#E87038",
             },
-            { fontSize: 35 },
+            { fontSize: screenWidth * 0.08 },
           ]}
         >
           {(countdownEvent?.event || currentEvent?.event)
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    fontSize: 30,
+    fontSize: screenWidth * 0.07,
     marginBottom: 10,
     fontWeight: "bold",
     color: "#fff",
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   timer: {
-    fontSize: 50,
+    fontSize: screenWidth * 0.1,
     fontWeight: "bold",
     color: "white",
     marginBottom: 12,
@@ -463,8 +463,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   image: {
-    height: 100,
-    width: 350,
+    height: 70,
+    width: screenWidth * 0.7,
     marginBottom: 30,
   },
   ScrollView: {
