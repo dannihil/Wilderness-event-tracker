@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# Wildy Events
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Wildy Events** is a React Native app designed to keep you updated on upcoming Wilderness events in RuneScape. Quickly see the next event with a live countdown, filter for all or just special events, and get customizable push notifications to stay ahead.
 
-## Get started
+---
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Home Screen**  
+  Displays the next Wilderness event with a countdown timer.  
+  Toggle between viewing **All Events** or **Only Special Events**.  
+  Shows a list of upcoming events for the next 8 to 10 hours.
+  
+<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 20 17 53" src="https://github.com/user-attachments/assets/dc4c0ada-2a19-4286-a820-3c578188e9d3" />
 
-2. Start the app
+- **Settings Screen**  
+  Choose how many minutes before an event you'd like to receive a push notification: 5, 10, 15, 30, or 60 minutes.  
+  Select notification preference: receive alerts for all events, only special events, or turn off notifications.
 
-   ```bash
-   npx expo start
-   ```
+<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 20 17 41" src="https://github.com/user-attachments/assets/f7b10864-5203-4f51-9c73-fb98325700dd" />
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Disclaimer
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+This app is an unofficial companion app and is not affiliated with or endorsed by Jagex Ltd. It is completely free and contains no advertisements or in-app purchases.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## How to Use
 
-```bash
-npm run reset-project
-```
+- When you open the app, the **Home Screen** shows the next event with a countdown.  
+- Use the toggle to filter between all events or only special ones.  
+- Scroll through upcoming events in the list below.  
+- Head to the **Settings Screen** to customize notification timing and preferences.  
+- Tap the **Disclaimer** button to read the app’s disclaimer.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## Technologies
 
-To learn more about developing your project with Expo, look at the following resources:
+- React Native  
+- AsyncStorage for local storage  
+- Push notifications tailored to user preferences  
+- Custom utilities for event scheduling and filtering
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## Contact
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Questions or feedback? Open an issue or contact me at runenodeapps@gmail.com.
