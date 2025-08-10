@@ -46,7 +46,27 @@ export default function HomeScreen() {
 
   // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
-    const [hour, minute] = timeStr.split(":").map(Number);
+    if (typeof timeStr !== "string" || !timeStr.includes(":")) {
+      console.warn("Invalid time string:", timeStr);
+      return null;
+    }
+
+    const [hourStr, minuteStr] = timeStr.split(":");
+    const hour = Number(hourStr);
+    const minute = Number(minuteStr);
+
+    if (
+      isNaN(hour) ||
+      isNaN(minute) ||
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
+      console.warn("Invalid hour or minute values:", hour, minute);
+      return null;
+    }
+
     const now = new Date();
     let eventDate = new Date(
       now.getFullYear(),
@@ -57,9 +77,12 @@ export default function HomeScreen() {
       0,
       0
     );
+
+    // If eventDate is in the past or now, add 1 day to get the next occurrence
     if (eventDate <= now) {
       eventDate.setDate(eventDate.getDate() + 1);
     }
+
     return eventDate;
   }
 
@@ -82,10 +105,20 @@ export default function HomeScreen() {
           return;
         }
 
-        const scheduledEvents = data.map((event) => ({
-          ...event,
-          start: getNextOccurrence(event.date),
-        }));
+        const scheduledEvents = data
+          .map((event) => {
+            if (!event.time) {
+              console.warn("Event missing time:", event);
+              return null; // skip events without a valid time
+            }
+            const start = getNextOccurrence(event.time);
+            if (!start) {
+              console.warn("Invalid start time for event:", event);
+              return null;
+            }
+            return { ...event, start };
+          })
+          .filter(Boolean); // remove null entries
 
         scheduledEvents.sort((a, b) => a.start - b.start);
 
