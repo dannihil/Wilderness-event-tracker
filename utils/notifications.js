@@ -67,8 +67,8 @@ export async function scheduleNotificationsForEvents(
     if (notifyTime > now) {
       await scheduleNotification(
         isSpecial(event)
-          ? "Special Wilderness Event reminder"
-          : "Wilderness Event reminder",
+          ? "Special Wilderness Flash Event reminder"
+          : "Wilderness Flash Event reminder",
         `${event.event.replace(
           /special/gi,
           ""

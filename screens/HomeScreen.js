@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -40,10 +41,6 @@ export default function HomeScreen() {
   const [filterSpecial, setFilterSpecial] = useState(false); // UI filter toggle
   const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
   const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
 
   // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
@@ -152,13 +149,6 @@ export default function HomeScreen() {
     }
     loadPrefs();
   }, []);
-
-  // Choose events to notify for, filtered by notification preference
-  const eventsToNotify = useMemo(() => {
-    if (notifyPreference === "all") return schedule;
-    if (notifyPreference === "special") return schedule.filter(isSpecialEvent);
-    return [];
-  }, [schedule, notifyPreference]);
 
   // Schedule notifications whenever relevant dependencies change
   useEffect(() => {
@@ -313,6 +303,69 @@ export default function HomeScreen() {
                 alignItems: "center",
                 marginBottom: 20,
               }}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <Image
+          style={styles.image}
+          source={require("../assets/images/texticon.png")}
+        />
+
+        <View style={styles.SpecialToggleView}>
+          <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
+            {filterSpecial ? "Show All Events" : "Show Only Special Events"}
+          </Text>
+          <Switch
+            value={filterSpecial}
+            onValueChange={setFilterSpecial}
+            trackColor={{ false: "#007AFF", true: "#444" }}
+            thumbColor={filterSpecial ? "#E87038" : "#fff"}
+          />
+        </View>
+
+        <Text
+          style={[
+            styles.eventName,
+            isSpecialEvent(countdownEvent || currentEvent) && {
+              color: "#E87038",
+            },
+            { fontSize: screenWidth * 0.08 },
+          ]}
+        >
+          {(countdownEvent?.event || currentEvent?.event)
+            ?.replace(/special/gi, "")
+            .replace(/rampage/gi, "")
+            .trim()}
+        </Text>
+
+        <Text style={styles.timer}>{countdown}</Text>
+
+        <TouchableOpacity
+          onPress={() => {
+            const activeEvent = countdownEvent || currentEvent;
+            if (activeEvent?.event) {
+              const url = getWikiUrl(activeEvent.event);
+              Linking.openURL(url).catch((err) =>
+                console.error("Failed to open wiki page:", err)
+              );
+            }
+          }}
+          style={styles.WikiButton}
+        >
+          <Image
+            source={require("../assets/images/wikibutton.png")}
+            style={{
+              width: imageSize,
+              height: imageSize,
+            }}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.FutureEvents}>
+          <Text style={styles.header}>Upcoming Events</Text>
+          {filteredNextEvents.length > 5 && (
+            <TouchableOpacity
+              onPress={() => setShowAllEvents(!showAllEvents)}
+              style={[styles.button, { marginTop: 10 }]}
             >
               <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
                 {filterSpecial ? "Show All Events" : "Show Only Special Events"}
@@ -500,5 +553,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     bottom: -20,
     backgroundColor: "rgba(92, 90, 90, 0.1)",
+  },
+  FutureEvents: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 20,
+  },
+  WikiButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 50,
+    backgroundColor: "#2F2F2F",
+    borderRadius: 100,
+    padding: 10,
+  },
+  SpecialToggleView: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
   },
 });

@@ -1,52 +1,60 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
+const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 
 async function scrape() {
-  try {
-    const res = await axios.get(
-      "https://runescape.wiki/w/Wilderness_Flash_Events"
-    );
-    console.log(`HTTP status: ${res.status}`);
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage", // reduces memory issues in containers
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process", // <- sometimes needed, try removing if issues persist
+      "--disable-gpu",
+    ],
+  });
+  const page = await browser.newPage();
 
-    const $ = cheerio.load(res.data);
-    const schedule = [];
+  await page.goto("https://runescape.wiki/w/Wilderness_Flash_Events", {
+    waitUntil: "networkidle0",
+  });
 
-    // Select the specific table by class as per your example
-    $(
-      "table.wikitable.align-center-1.align-right-2.wfe-rotations tbody tr"
-    ).each((i, el) => {
-      const cols = $(el).find("td");
+  // Extract the schedule from the live rendered table
+  const schedule = await page.evaluate(() => {
+    const rows = [
+      ...document.querySelectorAll(
+        "table#wfe-rotations, table#reload tbody tr"
+      ),
+    ];
+    const data = [];
+
+    rows.forEach((row) => {
+      const cols = row.querySelectorAll("td");
       if (cols.length >= 2) {
-        // Event name from <a>
-        const eventName = $(cols[0]).find("a").text().trim();
-
-        // Check if there is a special label in <i><small>
-        const specialLabel = $(cols[0]).find("i small").text().trim();
-
-        // Combine event name with " Special" if special label exists
+        const eventName = cols[0].querySelector("a")?.textContent.trim() || "";
+        const specialLabel =
+          cols[0].querySelector("i small")?.textContent.trim() || "";
         const fullName = specialLabel ? `${eventName} Special` : eventName;
+        const time = cols[1].querySelector("small")?.textContent.trim() || "";
 
-        // Time from second <td> <small>
-        const time = $(cols[1]).find("small").text().trim();
-
-        // Validate time format hh:mm
         if (/^\d{2}:\d{2}$/.test(time)) {
-          schedule.push({ event: fullName, date: time });
+          data.push({ event: fullName, date: time });
         }
       }
     });
 
-    console.log(`Filtered down to ${schedule.length} valid events`);
+    return data;
+  });
 
-    const filePath = path.join(process.cwd(), "events.json");
-    fs.writeFileSync(filePath, JSON.stringify(schedule, null, 2));
-    console.log(`✅ Wrote ${schedule.length} events to ${filePath}`);
-  } catch (err) {
-    console.error("❌ Scraping failed:", err);
-    process.exit(1);
-  }
+  await browser.close();
+
+  // Write to file
+  const filePath = path.join(process.cwd(), "events.json");
+  fs.writeFileSync(filePath, JSON.stringify(schedule, null, 2));
+  console.log(`✅ Wrote ${schedule.length} events to ${filePath}`);
 }
 
 scrape().catch((err) => {
