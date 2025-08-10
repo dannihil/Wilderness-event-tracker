@@ -26,11 +26,11 @@ export default function TabsLayout() {
         }}
       />
       <Tab.Screen
-        name="Settings"
+        name="Notifications"
         component={SettingsTab}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cog" size={size} color={color} />
+            <Ionicons name="notifications" size={size} color={color} />
           ),
           headerShown: false,
         }}

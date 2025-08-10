@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -297,128 +298,139 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.container}>
-        <Image
-          style={styles.image}
-          source={require("../assets/images/texticon.png")}
-        />
+    <>
+      <LinearGradient colors={["#0d0d0d", "#1a1a1a"]} style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.container}>
+            <Image
+              style={styles.image}
+              source={require("../assets/images/texticon.png")}
+            />
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
-          <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
-            {filterSpecial ? "Show All Events" : "Show Only Special Events"}
-          </Text>
-          <Switch
-            value={filterSpecial}
-            onValueChange={setFilterSpecial}
-            trackColor={{ false: "#007AFF", true: "#444" }}
-            thumbColor={filterSpecial ? "#E87038" : "#fff"}
-          />
-        </View>
-
-        <Text
-          style={[
-            styles.eventName,
-            isSpecialEvent(countdownEvent || currentEvent) && {
-              color: "#E87038",
-            },
-            { fontSize: screenWidth * 0.08 },
-          ]}
-        >
-          {(countdownEvent?.event || currentEvent?.event)
-            ?.replace(/special/gi, "")
-            .replace(/rampage/gi, "")
-            .trim()}
-        </Text>
-
-        <Text style={styles.timer}>{countdown}</Text>
-
-        <TouchableOpacity
-          onPress={() => {
-            const activeEvent = countdownEvent || currentEvent;
-            if (activeEvent?.event) {
-              const url = getWikiUrl(activeEvent.event);
-              Linking.openURL(url).catch((err) =>
-                console.error("Failed to open wiki page:", err)
-              );
-            }
-          }}
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: 50,
-            backgroundColor: "#2F2F2F",
-            borderRadius: 100,
-            padding: 10,
-          }}
-        >
-          <Image
-            source={require("../assets/images/wikibutton.png")}
-            style={{
-              width: imageSize,
-              height: imageSize,
-            }}
-          />
-        </TouchableOpacity>
-
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 20,
-          }}
-        >
-          <Text style={styles.header}>Upcoming Events</Text>
-          {filteredNextEvents.length > 5 && (
-            <TouchableOpacity
-              onPress={() => setShowAllEvents(!showAllEvents)}
-              style={[styles.button, { marginTop: 10 }]}
-            >
-              <Text style={styles.buttonText}>
-                {showAllEvents ? "Show Less" : "Show More"}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <ScrollView
-          style={styles.ScrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          {eventsToShow.map((event) => (
             <View
-              key={`${event.event}-${event.start.getTime()}`}
-              style={styles.eventRow}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
             >
-              <Text style={styles.eventTime}>
-                {event.start.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+              <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
+                {filterSpecial ? "Show All Events" : "Show Only Special Events"}
               </Text>
-              <Text
-                style={[
-                  styles.eventName,
-                  isSpecialEvent(event) && { color: "#E87038" },
-                  { fontSize: 20 },
-                ]}
-              >
-                {event.event
-                  .replace(/special/gi, "")
-                  .replace(/rampage/gi, "")
-                  .trim()}
-              </Text>
+              <Switch
+                value={filterSpecial}
+                onValueChange={setFilterSpecial}
+                trackColor={{ false: "#007AFF", true: "#444" }}
+                thumbColor={filterSpecial ? "#E87038" : "#fff"}
+              />
             </View>
-          ))}
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+
+            <Text
+              style={[
+                styles.eventName,
+                isSpecialEvent(countdownEvent || currentEvent) && {
+                  color: "#E87038",
+                },
+                { fontSize: screenWidth * 0.08 },
+              ]}
+            >
+              {(countdownEvent?.event || currentEvent?.event)
+                ?.replace(/special/gi, "")
+                .replace(/rampage/gi, "")
+                .trim()}
+            </Text>
+
+            <Text style={styles.timer}>{countdown}</Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                const activeEvent = countdownEvent || currentEvent;
+                if (activeEvent?.event) {
+                  const url = getWikiUrl(activeEvent.event);
+                  Linking.openURL(url).catch((err) =>
+                    console.error("Failed to open wiki page:", err)
+                  );
+                }
+              }}
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                marginBottom: 20,
+                marginTop: 20,
+                backgroundColor: "#2F2F2F",
+                borderRadius: 100,
+                padding: 10,
+                shadowColor: "#E87038",
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.6,
+                shadowRadius: 10,
+              }}
+            >
+              <Image
+                source={require("../assets/images/wikibutton.png")}
+                style={{
+                  width: imageSize,
+                  height: imageSize,
+                }}
+              />
+            </TouchableOpacity>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 20,
+                bottom: -20,
+              }}
+            >
+              <Text style={styles.header}>Upcoming Events</Text>
+              {filteredNextEvents.length > 5 && (
+                <TouchableOpacity
+                  onPress={() => setShowAllEvents(!showAllEvents)}
+                  style={[styles.button, { marginTop: 10 }]}
+                >
+                  <Text style={styles.buttonText}>
+                    {showAllEvents ? "Show Less" : "Show More"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <ScrollView
+              style={styles.ScrollView}
+              showsVerticalScrollIndicator={false}
+            >
+              {eventsToShow.map((event) => (
+                <View
+                  key={`${event.event}-${event.start.getTime()}`}
+                  style={styles.eventRow}
+                >
+                  <Text style={styles.eventTime}>
+                    {event.start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.eventName,
+                      isSpecialEvent(event) && { color: "#E87038" },
+                      { fontSize: 20 },
+                    ]}
+                  >
+                    {event.event
+                      .replace(/special/gi, "")
+                      .replace(/rampage/gi, "")
+                      .trim()}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    </>
   );
 }
 
@@ -427,7 +439,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#111",
+    backgroundColor: "transparent",
     padding: 20,
   },
   header: {
@@ -481,11 +493,12 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   ScrollView: {
-    width: 430,
+    width: screenWidth,
     paddingRight: 70,
     paddingLeft: 70,
     paddingTop: 5,
     borderRadius: 10,
-    backgroundColor: "#151515",
+    bottom: -20,
+    backgroundColor: "rgba(92, 90, 90, 0.1)",
   },
 });
