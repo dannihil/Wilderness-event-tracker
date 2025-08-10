@@ -11,13 +11,13 @@
   Toggle between viewing **All Events** or **Only Special Events**.  
   Shows a list of upcoming events for the next 8 to 10 hours.
   
-<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 20 17 53" src="https://github.com/user-attachments/assets/dc4c0ada-2a19-4286-a820-3c578188e9d3" />
+<img width="800" height="1739" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 20 17 53" src="https://github.com/user-attachments/assets/dc4c0ada-2a19-4286-a820-3c578188e9d3" />
 
 - **Settings Screen**  
   Choose how many minutes before an event you'd like to receive a push notification: 5, 10, 15, 30, or 60 minutes.  
   Select notification preference: receive alerts for all events, only special events, or turn off notifications.
 
-<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 20 17 41" src="https://github.com/user-attachments/assets/f7b10864-5203-4f51-9c73-fb98325700dd" />
+<img width="800" height="1739" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 20 17 41" src="https://github.com/user-attachments/assets/f7b10864-5203-4f51-9c73-fb98325700dd" />
 
 ---
 
