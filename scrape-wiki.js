@@ -14,21 +14,21 @@ async function scrape() {
 
     const schedule = [];
 
-    // Find only the Current rotation table
-    $("caption:contains('Current rotation')")
-      .closest("table")
-      .find("tbody tr")
-      .each((i, el) => {
-        const cols = $(el).find("td");
-        if (cols.length >= 2) {
-          const name = $(cols[0]).text().replace(/\s+/g, " ").trim();
-          const time = $(cols[1]).text().trim();
+    $("table.wikitable tbody tr").each((i, el) => {
+      const cols = $(el).find("td");
+      if (cols.length >= 2) {
+        const name = $(cols[0]).text().trim();
+        const date = $(cols[1]).text().trim();
 
-          if (/^\d{2}:\d{2}$/.test(time)) {
-            schedule.push({ event: name, time });
-          }
+        // Filtering logic
+        const isTimeFormat = /^\d{2}:\d{2}$/.test(date); // date should be a time
+        const isEventName = /^[A-Za-z].+/.test(name) && !/^\d+$/.test(name); // name should be a string, not a number
+
+        if (isTimeFormat && isEventName) {
+          schedule.push({ event: name, date });
         }
-      });
+      }
+    });
 
     console.log(`Filtered down to ${schedule.length} valid events`);
 
@@ -41,4 +41,7 @@ async function scrape() {
   }
 }
 
-scrape();
+scrape().catch((err) => {
+  console.error("❌ Scraping failed:", err);
+  process.exit(1);
+});
