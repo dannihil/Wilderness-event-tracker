@@ -15,8 +15,11 @@
   Choose how many minutes before an event you'd like to receive a push notification: 5, 10, 15, 30, or 60 minutes.  
   Select notification preference: receive alerts for all events, only special events, or turn off notifications.
 
-<img width="300" height="795" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 21 58 02" src="https://github.com/user-attachments/assets/f39d7d68-eeda-4267-9d54-d49b52ec7ca1" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width="300" height="796" alt="Simulator Screenshot - iPhone 16 Pro - 2025-08-10 at 21 58 10" src="https://github.com/user-attachments/assets/3b6f8add-174b-4d76-b6f5-7e58331617f7" />
+<br/>
 
+<img width="300" height="795" alt="Simulator Screenshot - iPhone 16 Pro - Home Screen" src="https://github.com/user-attachments/assets/f39d7d68-eeda-4267-9d54-d49b52ec7ca1" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width="300" height="796" alt="Simulator Screenshot - iPhone 16 Pro - Notifications Screen" src="https://github.com/user-attachments/assets/3b6f8add-174b-4d76-b6f5-7e58331617f7" />
+
+<br/>
 
 ---
 
@@ -29,7 +32,7 @@ This app is an unofficial companion app and is not affiliated with or endorsed b
 ## How to Use
 
 - When you open the app, the **Home Screen** shows the next event with a countdown.  
-- Use the toggle to filter between all events or only special ones.  
+- Use the toggle to filter between **All Events** or **Only Special Events**.  
 - Scroll through upcoming events in the list below.  
 - Head to the **Notifications Screen** to customize notification timing and preferences.  
 - Tap the **Disclaimer** button to read the app’s disclaimer.
@@ -47,4 +50,4 @@ This app is an unofficial companion app and is not affiliated with or endorsed b
 
 ## Contact
 
-Questions or feedback? Open an issue or contact me at runenodeapps@gmail.com.
+Questions or feedback? Open an issue or contact me at [runenodeapps@gmail.com](mailto:runenodeapps@gmail.com).
