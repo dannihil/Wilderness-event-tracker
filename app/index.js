@@ -1,7 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
+import Onboarding from "./Onboarding";
+
+const ONBOARDING_KEY = "hasSeenOnboarding";
 
 async function requestPermissions() {
   const { status } = await Notifications.requestPermissionsAsync();
@@ -24,14 +28,38 @@ async function requestPermissions() {
 
 export default function Index() {
   const router = useRouter();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function prepare() {
       await requestPermissions();
-      setTimeout(() => router.replace("/(tabs)/home"), 100);
+
+      const hasSeen = await AsyncStorage.getItem(ONBOARDING_KEY);
+      if (hasSeen === "true") {
+        router.replace("/(tabs)/home");
+      } else {
+        setShowOnboarding(true);
+      }
+
+      setLoading(false);
     }
     prepare();
   }, []);
 
-  return null;
+  function handleFinish() {
+    AsyncStorage.setItem(ONBOARDING_KEY, "true");
+    setShowOnboarding(false);
+    router.replace("/(tabs)/home");
+  }
+
+  if (loading) {
+    return null; // or loading indicator
+  }
+
+  if (showOnboarding) {
+    return <Onboarding onFinish={handleFinish} />;
+  }
+
+  return null; // if onboarding not needed and loading done
 }
