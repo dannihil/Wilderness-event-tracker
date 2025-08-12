@@ -354,13 +354,14 @@ export default function HomeScreen() {
             }}
           >
             {filterSpecial
-              ? "Next Special Event starts at:"
-              : "Next Event starts at:"}{" "}
+              ? "- Next Special Event starts at:"
+              : "- Next Event starts at"}{" "}
             {countdownEvent.start.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
               hour12: timeFormat === "12hr",
             })}
+            {" -"}
           </Text>
 
           <Text style={styles.timer}>{countdown}</Text>
@@ -494,6 +495,7 @@ const styles = StyleSheet.create({
   image: {
     height: 70,
     width: screenWidth * 0.7,
+    marginTop: 20,
     marginBottom: 30,
   },
   ScrollView: {
