@@ -24,7 +24,10 @@
         "backgroundColor": "#111"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": ["VIBRATE", "RECEIVE_BOOT_COMPLETED"]
+      "permissions": [
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -42,7 +45,8 @@
           "backgroundColor": "#f5ecdd"
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "react-native-background-fetch"
     ],
     "experiments": {
       "typedRoutes": true

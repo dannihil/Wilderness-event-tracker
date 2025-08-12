@@ -40,6 +40,30 @@ export default function HomeScreen() {
   const [filterSpecial, setFilterSpecial] = useState(false); // UI filter toggle
   const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
   const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
+  const [timeFormat, setTimeFormat] = useState("24hr"); // default fallback
+
+  async function clearAsyncStorage() {
+    try {
+      await AsyncStorage.clear();
+      console.log("AsyncStorage cleared!");
+    } catch (e) {
+      console.error("Failed to clear AsyncStorage.", e);
+    }
+  }
+
+  useEffect(() => {
+    async function loadTimeFormat() {
+      try {
+        const format = await AsyncStorage.getItem("timeFormat");
+        if (format === "12hr" || format === "24hr") {
+          setTimeFormat(format);
+        }
+      } catch (e) {
+        console.warn("Failed to load time format preference", e);
+      }
+    }
+    loadTimeFormat();
+  }, []);
 
   // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
@@ -179,6 +203,7 @@ export default function HomeScreen() {
       const diffMs = countdownEvent.start - now;
 
       if (diffMs <= 0) {
+        // Move to next event or reset current event if needed
         const next =
           schedule.find((e) => e.start > countdownEvent.start) || schedule[0];
         setCurrentEvent(next);
@@ -205,7 +230,7 @@ export default function HomeScreen() {
       }
     };
 
-    updateCountdown(); // run immediately
+    updateCountdown(); // initial call immediately
 
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
@@ -297,7 +322,7 @@ export default function HomeScreen() {
 
           <View style={styles.SpecialToggleView}>
             <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
-              {filterSpecial ? "Show All Events" : "Show Only Special Events"}
+              Show Only Special Events
             </Text>
             <Switch
               value={filterSpecial}
@@ -319,7 +344,23 @@ export default function HomeScreen() {
             {(countdownEvent?.event || currentEvent?.event)
               ?.replace(/special/gi, "")
               .replace(/rampage/gi, "")
-              .trim()}
+              .trim()}{" "}
+          </Text>
+          <Text
+            style={{
+              color: "white",
+              fontSize: screenWidth * 0.04,
+              marginBottom: 10,
+            }}
+          >
+            {filterSpecial
+              ? "Next Special Event starts at:"
+              : "Next Event starts at:"}{" "}
+            {countdownEvent.start.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: timeFormat === "12hr",
+            })}
           </Text>
 
           <Text style={styles.timer}>{countdown}</Text>
@@ -372,6 +413,7 @@ export default function HomeScreen() {
                   {event.start.toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
+                    hour12: timeFormat === "12hr",
                   })}
                 </Text>
                 <Text
@@ -389,6 +431,7 @@ export default function HomeScreen() {
               </View>
             ))}
           </ScrollView>
+          {/*<Button title="Clear Storage" onPress={clearAsyncStorage} />*/}
         </SafeAreaView>
       </LinearGradient>
     </>
