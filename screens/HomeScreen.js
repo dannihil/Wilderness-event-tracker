@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   Image,
-  Linking,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -41,6 +42,9 @@ export default function HomeScreen() {
   const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
   const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
   const [timeFormat, setTimeFormat] = useState("24hr"); // default fallback
+  const [refreshing, setRefreshing] = useState(false);
+
+  const router = useRouter();
 
   async function clearAsyncStorage() {
     try {
@@ -94,84 +98,99 @@ export default function HomeScreen() {
   }
 
   // Fetch schedule from remote JSON
-  useEffect(() => {
-    async function fetchSchedule() {
-      try {
-        const res = await fetch(EVENTS_URL);
-        const data = await res.json();
+  async function fetchSchedule(isRefreshing = false) {
+    if (isRefreshing) setRefreshing(true);
+    else setLoading(true);
 
-        if (!data || data.length === 0) {
-          setSchedule([]);
-          setCurrentEvent(null);
-          setNextEvents([]);
-          return;
-        }
+    try {
+      const res = await fetch(EVENTS_URL);
+      const data = await res.json();
 
-        const scheduledEvents = data
-          .map((event) => {
-            if (!event.date) {
-              console.warn("Event missing date:", event);
-              return null;
-            }
-
-            return {
-              ...event,
-              start: getNextOccurrence(event.date),
-            };
-          })
-          .filter(Boolean); // remove any null entries
-
-        scheduledEvents.sort((a, b) => a.start - b.start);
-
-        setSchedule(scheduledEvents);
-
-        const now = new Date();
-
-        let current = null;
-        for (let i = 0; i < scheduledEvents.length; i++) {
-          const start = scheduledEvents[i].start;
-          const nextStart =
-            scheduledEvents[i + 1]?.start ||
-            new Date(start.getTime() + 24 * 60 * 60 * 1000);
-          if (now >= start && now < nextStart) {
-            current = scheduledEvents[i];
-            break;
-          }
-        }
-
-        if (!current) current = scheduledEvents[0];
-
-        const currentIndex = scheduledEvents.indexOf(current);
-        const future = scheduledEvents.slice(currentIndex + 1);
-
-        setCurrentEvent(current);
-        setNextEvents(future);
-      } catch (err) {
-        console.error("Failed to fetch event schedule:", err);
+      if (!data || data.length === 0) {
         setSchedule([]);
         setCurrentEvent(null);
         setNextEvents([]);
-      } finally {
-        setLoading(false);
+        return;
       }
+
+      const scheduledEvents = data
+        .map((event) => {
+          if (!event.date) {
+            console.warn("Event missing date:", event);
+            return null;
+          }
+
+          return {
+            ...event,
+            start: getNextOccurrence(event.date),
+          };
+        })
+        .filter(Boolean); // remove any null entries
+
+      scheduledEvents.sort((a, b) => a.start - b.start);
+
+      setSchedule(scheduledEvents);
+
+      const now = new Date();
+
+      let current = null;
+      for (let i = 0; i < scheduledEvents.length; i++) {
+        const start = scheduledEvents[i].start;
+        const nextStart =
+          scheduledEvents[i + 1]?.start ||
+          new Date(start.getTime() + 24 * 60 * 60 * 1000);
+        if (now >= start && now < nextStart) {
+          current = scheduledEvents[i];
+          break;
+        }
+      }
+
+      if (!current) current = scheduledEvents[0];
+
+      const currentIndex = scheduledEvents.indexOf(current);
+      const future = scheduledEvents.slice(currentIndex + 1);
+
+      setCurrentEvent(current);
+      setNextEvents(future);
+    } catch (err) {
+      console.error("Failed to fetch event schedule:", err);
+      setSchedule([]);
+      setCurrentEvent(null);
+      setNextEvents([]);
+    } finally {
+      if (isRefreshing) setRefreshing(false);
+      else setLoading(false);
     }
+  }
+
+  // Initial fetch
+  useEffect(() => {
     fetchSchedule();
   }, []);
 
-  // Load user notification preferences on mount
-  useEffect(() => {
-    async function loadPrefs() {
-      try {
-        const minutesStr = await AsyncStorage.getItem(PREF_KEY);
-        if (minutesStr) setNotifyMinutesBefore(parseInt(minutesStr, 10));
-        const pref = await AsyncStorage.getItem(NOTIFY_TYPE_KEY);
-        if (pref) setNotifyPreference(pref);
-      } catch (err) {
-        console.error("Failed to load notification preferences", err);
-      }
+  // Define once, outside useEffect:
+  async function loadPrefs() {
+    try {
+      const minutesStr = await AsyncStorage.getItem(PREF_KEY);
+      if (minutesStr) setNotifyMinutesBefore(parseInt(minutesStr, 10));
+      const pref = await AsyncStorage.getItem(NOTIFY_TYPE_KEY);
+      if (pref) setNotifyPreference(pref);
+    } catch (err) {
+      console.error("Failed to load notification preferences", err);
     }
+  }
+
+  // Load prefs once on mount
+  useEffect(() => {
     loadPrefs();
   }, []);
+
+  // On refresh, call fetch and loadPrefs
+  async function onRefresh() {
+    setRefreshing(true);
+    await Promise.all([fetchSchedule(true), loadPrefs()]);
+    setRefreshing(false);
+  }
 
   // Schedule notifications whenever relevant dependencies change
   useEffect(() => {
@@ -324,12 +343,14 @@ export default function HomeScreen() {
             <Text style={{ color: "#fff", fontSize: 16, marginRight: 10 }}>
               Show Only Special Events
             </Text>
-            <Switch
-              value={filterSpecial}
-              onValueChange={setFilterSpecial}
-              trackColor={{ false: "#007AFF", true: "#444" }}
-              thumbColor={filterSpecial ? "#E87038" : "#fff"}
-            />
+            <View style={styles.switchContainer}>
+              <Switch
+                value={filterSpecial}
+                onValueChange={setFilterSpecial}
+                trackColor={{ false: "#007AFF", true: "#444" }}
+                thumbColor={filterSpecial ? "#E87038" : "#fff"}
+              />
+            </View>
           </View>
 
           <Text
@@ -370,20 +391,17 @@ export default function HomeScreen() {
             onPress={() => {
               const activeEvent = countdownEvent || currentEvent;
               if (activeEvent?.event) {
-                const url = getWikiUrl(activeEvent.event);
-                Linking.openURL(url).catch((err) =>
-                  console.error("Failed to open wiki page:", err)
-                );
+                router.push({
+                  pathname: "/(modals)/wiki",
+                  params: { url: getWikiUrl(activeEvent.event) },
+                });
               }
             }}
             style={styles.WikiButton}
           >
             <Image
               source={require("../assets/images/wikibutton.png")}
-              style={{
-                width: imageSize,
-                height: imageSize,
-              }}
+              style={{ width: imageSize, height: imageSize }}
             />
           </TouchableOpacity>
 
@@ -402,15 +420,28 @@ export default function HomeScreen() {
           </View>
 
           <ScrollView
-            style={styles.ScrollView}
+            style={[styles.ScrollView, refreshing ? { paddingTop: 80 } : null]}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#E87038"
+                colors={["#E87038"]}
+              />
+            }
           >
             {eventsToShow.map((event) => (
               <View
                 key={`${event.event}-${event.start.getTime()}`}
                 style={styles.eventRow}
               >
-                <Text style={styles.eventTime}>
+                <Text
+                  style={[
+                    styles.eventTime,
+                    isSpecialEvent(event) && { color: "#E87038" },
+                  ]}
+                >
                   {event.start.toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -461,12 +492,11 @@ const styles = StyleSheet.create({
   eventTime: {
     fontSize: 16,
     color: "#ddd",
-    width: 80,
+    width: 55,
   },
   eventRow: {
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
     marginBottom: 8,
   },
   timer: {
@@ -529,5 +559,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  switchLabel: {
+    color: "white",
+    fontWeight: "600",
+    marginLeft: 8,
   },
 });
