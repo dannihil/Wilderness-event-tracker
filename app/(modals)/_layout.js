@@ -7,6 +7,8 @@ export default function ModalLayout() {
         presentation: "modal", // or "transparentModal"
         gestureEnabled: true, // enable swipe to close on iOS
         headerShown: false,
+        animation: "slide_from_bottom",
+        freezeOnBlur: true,
       }}
     />
   );

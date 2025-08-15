@@ -18,18 +18,19 @@ import {
 import {
   cancelAllNotifications,
   scheduleNotification,
-} from "../utils/notifications"; // adjust path
+} from "../utils/notifications";
 
 const EVENTS_URL =
   "https://raw.githubusercontent.com/dannihil/Wilderness-event-tracker/main/events.json";
 const PREF_KEY = "notifyMinutesBefore";
 const NOTIFY_TYPE_KEY = "notifyPreference";
+const FILTER_SPECIAL_KEY = "filterSpecial"; // NEW KEY
 
 const DEFAULT_EVENTS_TO_SHOW = 5;
 const MAX_EVENTS_TO_SHOW = 11;
 
 const screenWidth = Dimensions.get("window").width;
-const imageSize = screenWidth * 0.15; // 20% of screen width
+const imageSize = screenWidth * 0.15;
 
 export default function HomeScreen() {
   const [schedule, setSchedule] = useState([]);
@@ -38,10 +39,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [countdown, setCountdown] = useState("");
   const [showAllEvents, setShowAllEvents] = useState(false);
-  const [filterSpecial, setFilterSpecial] = useState(false); // UI filter toggle
-  const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15); // default 15 min
-  const [notifyPreference, setNotifyPreference] = useState("all"); // all, special, none
-  const [timeFormat, setTimeFormat] = useState("24hr"); // default fallback
+  const [filterSpecial, setFilterSpecial] = useState(false);
+  const [notifyMinutesBefore, setNotifyMinutesBefore] = useState(15);
+  const [notifyPreference, setNotifyPreference] = useState("all");
+  const [timeFormat, setTimeFormat] = useState("24hr");
   const [refreshing, setRefreshing] = useState(false);
 
   const router = useRouter();
@@ -55,6 +56,7 @@ export default function HomeScreen() {
     }
   }
 
+  // Load time format
   useEffect(() => {
     async function loadTimeFormat() {
       try {
@@ -69,12 +71,23 @@ export default function HomeScreen() {
     loadTimeFormat();
   }, []);
 
+  // Load persisted filterSpecial
+  useEffect(() => {
+    AsyncStorage.getItem(FILTER_SPECIAL_KEY).then((val) => {
+      if (val !== null) {
+        setFilterSpecial(val === "true");
+      }
+    });
+  }, []);
+
+  // Save filterSpecial when it changes
+  useEffect(() => {
+    AsyncStorage.setItem(FILTER_SPECIAL_KEY, filterSpecial.toString());
+  }, [filterSpecial]);
+
   // Helper: parse time string to next Date occurrence
   function getNextOccurrence(timeStr) {
-    if (!timeStr) {
-      console.warn("Invalid time string:", timeStr);
-      return null;
-    }
+    if (!timeStr) return null;
     const [hour, minute] = timeStr.split(":").map(Number);
     const now = new Date();
     let eventDate = new Date(
@@ -92,12 +105,10 @@ export default function HomeScreen() {
     return eventDate;
   }
 
-  // Helper: check if event is special
   function isSpecialEvent(event) {
     return event.event.toLowerCase().includes("special");
   }
 
-  // Fetch schedule from remote JSON
   async function fetchSchedule(isRefreshing = false) {
     if (isRefreshing) setRefreshing(true);
     else setLoading(true);
@@ -106,7 +117,7 @@ export default function HomeScreen() {
       const res = await fetch(EVENTS_URL);
       const data = await res.json();
 
-      if (!data || data.length === 0) {
+      if (!data?.length) {
         setSchedule([]);
         setCurrentEvent(null);
         setNextEvents([]);
@@ -114,38 +125,23 @@ export default function HomeScreen() {
       }
 
       const scheduledEvents = data
-        .map((event) => {
-          if (!event.date) {
-            console.warn("Event missing date:", event);
-            return null;
-          }
-
-          return {
-            ...event,
-            start: getNextOccurrence(event.date),
-          };
-        })
-        .filter(Boolean); // remove any null entries
-
-      scheduledEvents.sort((a, b) => a.start - b.start);
+        .map((event) => ({
+          ...event,
+          start: event.date ? getNextOccurrence(event.date) : null,
+        }))
+        .filter((e) => e.start)
+        .sort((a, b) => a.start - b.start);
 
       setSchedule(scheduledEvents);
 
       const now = new Date();
-
-      let current = null;
-      for (let i = 0; i < scheduledEvents.length; i++) {
-        const start = scheduledEvents[i].start;
-        const nextStart =
-          scheduledEvents[i + 1]?.start ||
-          new Date(start.getTime() + 24 * 60 * 60 * 1000);
-        if (now >= start && now < nextStart) {
-          current = scheduledEvents[i];
-          break;
-        }
-      }
-
-      if (!current) current = scheduledEvents[0];
+      let current =
+        scheduledEvents.find((e, i) => {
+          const nextStart =
+            scheduledEvents[i + 1]?.start ||
+            new Date(e.start.getTime() + 24 * 60 * 60 * 1000);
+          return now >= e.start && now < nextStart;
+        }) || scheduledEvents[0];
 
       const currentIndex = scheduledEvents.indexOf(current);
       const future = scheduledEvents.slice(currentIndex + 1);
@@ -163,12 +159,10 @@ export default function HomeScreen() {
     }
   }
 
-  // Initial fetch
   useEffect(() => {
     fetchSchedule();
   }, []);
 
-  // Define once, outside useEffect:
   async function loadPrefs() {
     try {
       const minutesStr = await AsyncStorage.getItem(PREF_KEY);
@@ -180,19 +174,16 @@ export default function HomeScreen() {
     }
   }
 
-  // Load prefs once on mount
   useEffect(() => {
     loadPrefs();
   }, []);
 
-  // On refresh, call fetch and loadPrefs
   async function onRefresh() {
     setRefreshing(true);
     await Promise.all([fetchSchedule(true), loadPrefs()]);
     setRefreshing(false);
   }
 
-  // Schedule notifications whenever relevant dependencies change
   useEffect(() => {
     if (schedule.length) {
       rescheduleAllNotifications(
@@ -203,17 +194,14 @@ export default function HomeScreen() {
     }
   }, [schedule, notifyPreference, notifyMinutesBefore]);
 
-  // Countdown event selection logic
   const countdownEvent = (() => {
     if (filterSpecial) {
       const now = new Date();
       return schedule.find((e) => isSpecialEvent(e) && e.start >= now) || null;
-    } else {
-      return currentEvent;
     }
+    return currentEvent;
   })();
 
-  // Countdown timer update
   useEffect(() => {
     if (!countdownEvent) return;
 
@@ -222,7 +210,6 @@ export default function HomeScreen() {
       const diffMs = countdownEvent.start - now;
 
       if (diffMs <= 0) {
-        // Move to next event or reset current event if needed
         const next =
           schedule.find((e) => e.start > countdownEvent.start) || schedule[0];
         setCurrentEvent(next);
@@ -249,8 +236,7 @@ export default function HomeScreen() {
       }
     };
 
-    updateCountdown(); // initial call immediately
-
+    updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [countdownEvent, schedule]);
@@ -283,26 +269,17 @@ export default function HomeScreen() {
     minutesBefore
   ) {
     const now = new Date();
+    let eventsToNotify =
+      preference === "all"
+        ? schedule
+        : preference === "special"
+        ? schedule.filter((event) =>
+            event.event.toLowerCase().includes("special")
+          )
+        : [];
 
-    // Filter events based on preference
-    let eventsToNotify = [];
-    if (preference === "all") {
-      eventsToNotify = schedule;
-    } else if (preference === "special") {
-      eventsToNotify = schedule.filter((event) =>
-        event.event.toLowerCase().includes("special")
-      );
-    }
-
-    console.log("Cancelling all notifications...");
     await cancelAllNotifications();
-
-    if (!eventsToNotify.length) {
-      console.log("No events to notify.");
-      return;
-    }
-
-    console.log(`Scheduling ${eventsToNotify.length} notifications...`);
+    if (!eventsToNotify.length) return;
 
     for (const event of eventsToNotify) {
       const notifyTime = new Date(

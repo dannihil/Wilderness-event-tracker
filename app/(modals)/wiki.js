@@ -23,9 +23,9 @@ export default function WikiModal() {
           onPress={() => router.back()}
           style={styles.closeButton}
         >
-          <Text style={styles.closeText}>✕</Text>
+          <Text style={styles.closeText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>RuneScape Wiki</Text>
+        <Text style={styles.headerTitle}>Wildy event info</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0d0d0d" },
   header: {
     height: 50,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1a1a1abd",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

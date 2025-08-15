@@ -13,6 +13,7 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: "#111", borderTopWidth: 0 },
         tabBarActiveTintColor: "#E87038",
         tabBarInactiveTintColor: "#aaa",
+        unmountOnBlur: false,
       }}
     >
       <Tab.Screen
@@ -23,6 +24,7 @@ export default function TabsLayout() {
             <Ionicons name="home" size={size} color={color} />
           ),
           headerShown: false,
+          unmountOnBlur: false,
         }}
       />
       <Tab.Screen
@@ -33,6 +35,7 @@ export default function TabsLayout() {
             <Ionicons name="notifications" size={size} color={color} />
           ),
           headerShown: false,
+          unmountOnBlur: false,
         }}
       />
     </Tab.Navigator>
