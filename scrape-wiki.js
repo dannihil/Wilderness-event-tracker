@@ -8,25 +8,37 @@ async function scrape() {
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage", // reduces memory issues in containers
+      "--disable-dev-shm-usage",
       "--disable-accelerated-2d-canvas",
       "--no-first-run",
       "--no-zygote",
-      "--single-process", // <- sometimes needed, try removing if issues persist
       "--disable-gpu",
     ],
   });
+
   const page = await browser.newPage();
 
-  await page.goto("https://runescape.wiki/w/Wilderness_Flash_Events", {
-    waitUntil: "networkidle0",
+  // Speed up & avoid resource hangs
+  await page.setRequestInterception(true);
+  page.on("request", (req) => {
+    if (["image", "stylesheet", "font", "media"].includes(req.resourceType())) {
+      req.abort();
+    } else {
+      req.continue();
+    }
   });
 
-  // Extract the schedule from the live rendered table
+  // Use domcontentloaded (avoids infinite wait on ads/analytics)
+  await page.goto("https://runescape.wiki/w/Wilderness_Flash_Events", {
+    waitUntil: "domcontentloaded",
+    timeout: 60000,
+  });
+
+  // Extract the schedule
   const schedule = await page.evaluate(() => {
     const rows = [
       ...document.querySelectorAll(
-        "table#wfe-rotations, table#reload tbody tr"
+        "table#wfe-rotations tbody tr, table#reload tbody tr"
       ),
     ];
     const data = [];
@@ -57,7 +69,25 @@ async function scrape() {
   console.log(`✅ Wrote ${schedule.length} events to ${filePath}`);
 }
 
-scrape().catch((err) => {
-  console.error("❌ Scraping failed:", err);
+// Retry wrapper
+async function runWithRetries(fn, retries = 3, delay = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      console.error(`⚠️ Attempt ${i + 1} failed:`, err.message);
+      if (i < retries - 1) {
+        console.log(`⏳ Retrying in ${delay / 1000}s...`);
+        await new Promise((res) => setTimeout(res, delay));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
+// Run with retries
+runWithRetries(scrape, 3, 5000).catch((err) => {
+  console.error("❌ Scraping failed after retries:", err);
   process.exit(1);
 });
