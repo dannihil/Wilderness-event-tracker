@@ -28,19 +28,18 @@ async function scrape() {
     }
   });
 
-  // Use domcontentloaded (avoids infinite wait on ads/analytics)
+  // Go to the page and wait for the table to fully render
   await page.goto("https://runescape.wiki/w/Wilderness_Flash_Events", {
-    waitUntil: "domcontentloaded",
+    waitUntil: "networkidle2", // wait for dynamic content
     timeout: 60000,
   });
 
+  // Wait for the rows in the main table to appear
+  await page.waitForSelector("table#reload tbody tr", { timeout: 10000 });
+
   // Extract the schedule
   const schedule = await page.evaluate(() => {
-    const rows = [
-      ...document.querySelectorAll(
-        "table#wfe-rotations tbody tr, table#reload tbody tr"
-      ),
-    ];
+    const rows = document.querySelectorAll("table#reload tbody tr");
     const data = [];
 
     rows.forEach((row) => {
